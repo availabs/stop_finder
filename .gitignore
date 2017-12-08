@@ -1,1 +1,8 @@
 node_modules/
+gtfs/
+gtfs.zip
+gtfssherbrooke.zip
+gtfssherbrooke/
+
+db_config.json
+gtfs-load.txt
