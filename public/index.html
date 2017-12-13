@@ -26,17 +26,13 @@
     }
     return params;
   }
-  var map = null
+  
   var params = getSearchParameters();
 
   var start = [ 
     params.lng || 40.487692978918865,
     params.lat || -74.38568115234375
   ]
-  d3.select('body')
-    .append('div')
-    .text(JSON.stringify(params))
-
   var stopIcons = []
    
   //Data from API that will be displayed (subset of those actually retreived)
@@ -60,19 +56,7 @@
 
 
   function getData (coords) {
-    //Closes any open popups
-    //Removes old icons
-    //Removes list of stops
-    if (map) {
-      map.closePopup()
-      stopIcons.forEach(icon => {
-        map.getPanes().markerPane.removeChild(icon['_icon'])
-
-      })
-      d3.select("#stops").selectAll("div").remove()
-      stopIcons = []
-    }
-
+    
     var url = `/stops/${coords[1]}/${coords[0]}`
 
     console.log('url', url)
