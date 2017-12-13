@@ -25,7 +25,7 @@ function getNearbyStops(req, res, next) {
     LIMIT 
       10;
   `
-40.990379, -74.033953
+  
   db.any(query)
     .then(function (data) {
       res.status(200)
