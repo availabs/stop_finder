@@ -43,7 +43,7 @@ app.get('/stops/:lng/:lat', function (req, res, next) {
 })
 
 app.use('/', index);
-
+app.use(express.static(__dirname + '/public'));
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

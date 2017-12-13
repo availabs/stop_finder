@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/test', function(req, res, next) {
-  res.send('testing');
+  res.render('index')
 });
 
 router.get('/stops', function(req, res, next) {

@@ -1,8 +1,40 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  padding:20px;
+  padding-top: 10px;
+  font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 a {
   color: #00B7FF;
+}
+
+
+ccc {
+}
+
+ccc.ccc--converted {
+  animation: ccc 0.7s ease-in-out;
+}
+
+@-webkit-keyframes ccc {
+  from {
+    background-color: yellow;
+  }
+
+  to {
+    background-color: rgba(255, 255, 255, 0);
+  }
+}
+
+.stopIcon {
+  width: 7px;
+  background-color: red;
+  border-radius: 50%;
+}
+.stopListEntry{
+  margin:5px;
+}
+.stopListData{
+  margin:2px;
+  margin-left:30px;
 }

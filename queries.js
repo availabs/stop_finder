@@ -17,7 +17,9 @@ function getNearbyStops(req, res, next) {
     SELECT 
       stop_id,
       stop_code,
-      stop_name
+      stop_name,
+      stop_lat,
+      stop_lon
     FROM 
       public.stops
     ORDER BY 
@@ -25,7 +27,7 @@ function getNearbyStops(req, res, next) {
     LIMIT 
       10;
   `
-  
+
   db.any(query)
     .then(function (data) {
       res.status(200)
