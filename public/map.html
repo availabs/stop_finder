@@ -34,12 +34,13 @@
   var stopIcons = []
    
   //Data from API that will be displayed (subset of those actually retreived)
-  var displayedDataKeys = ['stop_id','stop_code']
+  var displayedDataKeys = ['stop_id','stop_code','route_ids']
 
   //Formatting for above keys
   var formattedDataKeys = {
     'stop_id':"Stop ID",
-    'stop_code':"Stop Code"
+    'stop_code':"Stop Code",
+    'route_ids':"Route IDs"
   }
 
   //Removes all old highlighted stops (in list-div)
@@ -49,7 +50,7 @@
     allStopDivs.style("background-color","")
     var stopDiv = d3.select("div.stop_"+stop_id)
 
-    stopDiv.style("background-color","yellow")  
+    stopDiv.style("background-color","white")  
   }
 
   /*

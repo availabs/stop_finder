@@ -15,13 +15,19 @@ function getNearbyStops(req, res, next) {
 
   var query = `
     SELECT 
-      stop_id,
+      gtfs1.stops.stop_id,
       stop_code,
       stop_name,
       stop_lat,
-      stop_lon
+      stop_lon,
+      array_agg(route_id) as route_ids
     FROM 
-      public.stops
+      gtfs1.stops,
+      gtfs1.route_stops
+    WHERE 
+      gtfs1.stops.stop_id = gtfs1.route_stops.stop_id
+    GROUP BY
+      gtfs1.stops.stop_id
     ORDER BY 
       geom <-> st_setsrid(st_makepoint(${ lng },${ lat }),4326)
     LIMIT 
