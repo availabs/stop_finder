@@ -30,8 +30,8 @@
   var params = getSearchParameters();
 
   var start = [ 
-    params.lng || 40.487692978918865,
-    params.lat || -74.38568115234375
+    params.lat || 40.487692978918865,
+    params.lng || -74.38568115234375
   ]
   var stopIcons = []
    
@@ -54,6 +54,15 @@
     stopDiv.style("background-color","white")  
   }
 
+
+  /*
+  *
+  * LEAFLET TAKES COORDS AS: LAT/LNG
+  * POSTGIS TAKES COORDS AS: LNG/LAT
+  * Parameter is LAT/LNG in order to work with Leaflet
+  * Function reverses it when creating URL to get data
+  *
+  */
 
   function getData (coords) {
     

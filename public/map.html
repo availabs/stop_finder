@@ -9,11 +9,26 @@
   </div>
 </div>
 <script>
+  function getSearchParameters() {
+    var prmstr = window.location.search.substr(1);
+    return prmstr != null && prmstr != "" ? transformToAssocArray(prmstr) : {};
+  }
 
+  function transformToAssocArray( prmstr ) {
+    var params = {};
+    var prmarr = prmstr.split("&");
+    for ( var i = 0; i < prmarr.length; i++) {
+        var tmparr = prmarr[i].split("=");
+        params[tmparr[0]] = tmparr[1];
+    }
+    return params;
+  }
+  
+  var params = getSearchParameters();
 
   var start = [ 
-    40.487692978918865,
-    -74.38568115234375
+    params.lat || 40.487692978918865,
+    params.lng || -74.38568115234375
   ]
 
   var stopIcons = []
@@ -37,7 +52,14 @@
     stopDiv.style("background-color","yellow")  
   }
 
-
+  /*
+  *
+  * LEAFLET TAKES COORDS AS: LAT/LNG
+  * POSTGIS TAKES COORDS AS: LNG/LAT
+  * Parameter is LAT/LNG in order to work with Leaflet
+  * Function reverses it when creating URL to get data
+  *
+  */
   function getData (coords) {
     //Closes any open popups
     //Removes old icons

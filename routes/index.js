@@ -8,9 +8,9 @@ router.get('/', function(req, res, next) {
   res.send('hello world');
 });
 
-router.get('/test', function(req, res, next) {
-  res.render('index')
-});
+router.get('/map',function(req, res, next) {
+  res.sendfile('./public/map.html');
+})
 
 router.get('/stops', function(req, res, next) {
   res.send('Your location was not provided.');
@@ -19,7 +19,6 @@ router.get('/stops', function(req, res, next) {
 router.get('/stops/:lnglat', function(req, res, next) {
   res.send('Your full lng/lat was not provided.');
 })
-
 
 router.get('/stops/:lng/:lat',db.getNearbyStops);
 
