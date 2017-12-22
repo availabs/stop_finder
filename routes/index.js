@@ -22,4 +22,6 @@ router.get('/stops/:lnglat', function(req, res, next) {
 
 router.get('/stops/:lng/:lat',db.getNearbyStops);
 
+router.get('/testparse',db.testParse);
+
 module.exports = router;
