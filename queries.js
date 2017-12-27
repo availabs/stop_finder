@@ -13,25 +13,59 @@ var pgp = require('pg-promise')(options);
 var db = pgp(cn);
 
 function testParse(req,res,next){
+  console.log("testParse req params",req.query)
+
+  var routeId = req.query.routeId != "undefined" ? req.query.routeId : null,
+      direction = req.query.direction != "undefined" ? req.query.direction : null,
+      stopId = req.query.stopId != "undefined" ? req.query.stopId : null,
+      showAllBusses = req.query.allBusses != "undefined" ? req.query.allBusses : null || "on";
+
+
+
+  var url = "http://mybusnow.njtransit.com/bustime/wireless/html/"
+
+  var url = `http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&findstop=on&selectedRtpiFeeds=&id=${ stopId }`
+
+
+  // if(stopId && direction && routeId){
+  //   url += `eta.jsp?route=${ routeId }&direction=${ direction }&id=${ stopId }&showAllBusses=${ showAllBusses }`
+  // }
+  // else if(direction && routeId){
+  //   url += `selectstop.jsp?route=${ routeId }&direction=${ direction }`
+  // }
+  // else if(routeId){
+  //   url += `selectdirection.jsp?route=${ routeId }`
+  // }
+  // else{
+  //   url += `home.jsp`
+  // }
+
+  if(!routeId && !direction && !stopId){
+    var scripts = [    
+      'http://mybusnow.njtransit.com/bustime/javascript/RtpiFeed.js',
+      "http://mybusnow.njtransit.com/bustime/javascript/Utils.js",
+      "http://mybusnow.njtransit.com/bustime/javascript/Trace.js",
+      "http://mybusnow.njtransit.com/bustime/javascript/Route.js"
+    ]
+  }
+  else{
+    var scripts = [
+      
+    ]
+  }
+
+
   jsdom.env({
-    url: "http://mybusnow.njtransit.com/bustime/wireless/html/home.jsp",
+    url: url,
     features: {
         FetchExternalResources: ['script'],
         ProcessExternalResources: ['script']
     },
-    scripts:[
-    'http://mybusnow.njtransit.com/bustime/javascript/RtpiFeed.js',
-    "http://mybusnow.njtransit.com/bustime/javascript/Utils.js",
-    "http://mybusnow.njtransit.com/bustime/javascript/Trace.js",
-    "http://mybusnow.njtransit.com/bustime/javascript/Route.js",
-    "http://code.jquery.com/jquery.js"
-    ],
+    scripts:scripts,
     done: function (err, window) {
-      console.log("done");
       window.addEventListener("error", function (event) {
         console.error("script error!!", event.error);
       });
-
 
       var stopArray = []
       /*
@@ -39,94 +73,62 @@ function testParse(req,res,next){
       * USING VANILLA
       *
       */
-      var listItems = window.document.getElementById("routeDiv").children[0].children
-      Object.keys(listItems).forEach(listItemKey => {
-        //console.log(listItems[listItemKey].textContent)
-        stopArray.push(listItems[listItemKey].textContent)
-      })
 
-      /*
-      *
-      * USING JQUERY
-      *
-      */
-      // var $ = window.$
-      // $("ul").find('li').each((index,element) => {
-      //  //console.log($(element).text())
-      //  stopArray.push($(element).text())
-      // })
+      //If only a stopId is given, just looking for the 'font' tags
+      //They display the nearby route + bus combinations
+      if(stopId && !direction && !routeId){
+        console.log("only stop ID")
+        var listItems = window.document.body.childNodes
+      }
+      else{
+        var listItems = window.document.getElementsByTagName("ul")[0].children
+      }
+
+      var reachedData = false
+      var curRowIndex = 0
+      var curRowObj = {}
+
+      Object.keys(listItems).forEach((listItemKey,index) => {
+        var curElement = listItems[listItemKey]
+        var curNodeName = curElement.nodeName
+
+        if(index == 5){
+          stopArray.push({currentTime:curElement.textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").trim().split('Currently: ')[1]})
+        }
+
+        if(curNodeName == "HR"){
+          reachedData = true
+          curRowIndex = 0;
+          if(curRowObj["route"]){
+            stopArray.push(curRowObj)
+            curRowObj = {}
+          }
+        }
+
+        if(curNodeName == "FONT" && curRowIndex > 1 || (curNodeName == "#text" && listItems[listItemKey].textContent.replace(/\s+/g,""))){
+          var textContent = listItems[listItemKey].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").trim()
+
+          if(curRowIndex == 3){
+            curRowObj['description'] = textContent
+          }
+          if(curRowIndex == 4){
+            curRowObj['time'] = textContent
+          }
+          if(curRowIndex == 2){
+            curRowObj['route'] = textContent
+          }
+          if(curRowIndex == 6){
+            curRowObj['bus'] = textContent.split('Vehicle ')[1]
+          }
+
+        }
+
+        curRowIndex++;
+      })
 
       res.send(stopArray)
     }
   });
-
-  /*
-  * cURL section
-  */
-
-  // var curl = new Curl();
-
-  // curl.setOpt( 'URL', "http://mybusnow.njtransit.com/bustime/wireless/html/home.jsp" );
-  // curl.setOpt( 'FOLLOWLOCATION', true );
-
-  // curl.on( 'end', function( statusCode, body, headers ) {
-
-  /*
-  *
-  * cURL PLUS jsdom -- using jsdom.jsdom
-  *
-  */
-
-  //   var doc = jsdom.jsdom(body, {
-  //     scripts:[
-  //     'http://mybusnow.njtransit.com/bustime/javascript/RtpiFeed.js',
-  //     "http://mybusnow.njtransit.com/bustime/javascript/Utils.js",
-  //     "http://mybusnow.njtransit.com/bustime/javascript/Trace.js",
-  //     "http://mybusnow.njtransit.com/bustime/javascript/Route.js"
-  //     ],
-  //     onLoad:function(err,myWindow){
-  //       console.log(err)
-  //       console.log("ONLOAD")
-  //     },
-  //     done:function(err,doneWindow){
-  //       console.log("DONE")
-  //     },
-  //     created:function(err,window){
-  //       console.log(err)
-  //       console.log("TESTING",window.document)
-  //       window.addEventListener("error", function (event) {
-  //   console.error("script error!!", event.error);
-  // });
-  //     },
-  //   });
-  //   //var window = doc.defaultView;
-  //   console.log("FAkE",doc.defaultView)
-
-
-  /*
-  *
-  * cURL PLUS cheerio
-  * cheerio can't wait for scripts to load so it doesn't really work for us.
-  *
-  */
-
-  //   // var $ = cheerio.load(body);
-
-
-  //   // console.log($.html('ul'))
-  //   // console.log($.html('head'))
-  //   //   console.info( "ryan status from njstransit",statusCode );
-  //     // console.info( '---' );
-  //     // console.info( body );
-  //     // console.info( '---' );
-  //     // console.info( this.getInfo( 'TOTAL_TIME' ) );
-
-  //     this.close();
-  // });
-
-  // curl.on( 'error', curl.close.bind( curl ) );
-  // curl.perform();
-
 }
 
 

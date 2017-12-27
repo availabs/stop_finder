@@ -3,11 +3,19 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 <script src="https://d3js.org/d3.v4.min.js" /></script>
 <script src="./javascripts/paramHelpers.js" /></script>
+<script src="./javascripts/onClickHelpers.js" /></script>
+<script src="./javascripts/prettyDataKeys.js" /></script>
 <link rel="stylesheet" href="/stylesheets/style.css">
 <div class='container'>
-  <h2>Nearby Transit Stops</h2>
+  <h2>REALTIME</h2>
   <div class="row">
     <div class="col-12" id="stops">
+
     </div>
   </div>
 </div>
+</div>
+<script>  
+  var params = getSearchParameters();
+  getRealtimeData(params['stopId'], '#stops')
+</script>

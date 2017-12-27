@@ -47,11 +47,98 @@ ccc.ccc--converted {
   justify-content: space-between!important;
   cursor: pointer!important;
   border-radius: 4px!important;
-  
+
+
+  overflow-x:hidden;
 }
+
 .stopListData{
   margin:2px;
-  
+  margin-left:0px;
+}
+
+.icon:after {
+    /* symbol for "opening" panels */
+    font-family: 'FontAwesome';  /* essential for enabling glyphicon */
+    content: "\f068";    /* adjust as needed, taken from bootstrap.css */
+    float: right;        /* adjust as needed */
+    color: grey;         /* adjust as needed */
+}
+
+/*
+*
+* Did some funky margin stuff to get a full-line within the div
+* Realtime Container is extra-wide but then has a negative margin 
+* Container's parent hides X-overflow so the line appears perfect width
+* The value of the negative margin is used in a few places below (vanilla CSS so can't use variables)
+* 
+* CURRENT NEGATIVE MARGIN: 18 (matches padding of parent -- .stopListEntry)
+*
+*/
+.realtimeDataContainer{
+  transition: all .125s;
+  border-top:1px solid black;
+  margin-top:7px;
+  -webkit-justify-content: space-between!important;
+  justify-content: space-between!important;
+  cursor: pointer!important;  
+
+
+  padding-top:10px;
+  padding-left:18px;
+  width: 109%!important;
+  margin-left:-18px;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+  max-height: 400px;
+}
+
+.toggle_collapse{
+  float:right;
+  height:20px;
+  width:10px;
+  margin-right:18px;
+}
+
+.collapsed{
+  max-height:0px;
+}
+
+
+.realtimeDataHeader{
+  font-weight: bold;
+  font-size:18px;
+  margin-bottom:5px;
+}
+
+.realtimeDataTimestamp{
+  font-weight: bold;
+  font-size:18px;
+  margin-bottom:5px;
+  margin-right:10px;  
+}
+
+
+.realtimeData{
+  margin-top:8px;
+  margin-bottom:12px;
+}
+
+.realtimeData:last-of-type{
+  margin-bottom:0px;
+}
+.realtimeDataContainer .element{
+  margin-bottom:2px;
+  margin-left:7px;
+  transition: all .125s;
+  width: 100%!important;
+  -webkit-justify-content: space-between!important;
+  justify-content: space-between!important;
+  cursor: pointer!important;
+  border-radius: 4px!important;  
+
+  display:inline-block;
 }
 
 

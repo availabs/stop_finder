@@ -1,8 +1,11 @@
 <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
 <script src="https://d3js.org/d3.v4.min.js" /></script>
 <script src="./javascripts/paramHelpers.js" /></script>
+<script src="./javascripts/onClickHelpers.js" /></script>
+<script src="./javascripts/prettyDataKeys.js" /></script>
 <link rel="stylesheet" href="/stylesheets/style.css">
 <div class="row">
   <div id="map" style="height:750px" class="col-8 leaflet-container leaflet-fade-anim" tabindex="0"></div>
@@ -20,24 +23,7 @@
   var stopIcons = []
    
   //Data from API that will be displayed (subset of those actually retreived)
-  var displayedDataKeys = ['stop_id','stop_code','route_ids']
-
-  //Formatting for above keys
-  var formattedDataKeys = {
-    'stop_id':"Stop ID",
-    'stop_code':"Stop Code",
-    'route_ids':"Route IDs"
-  }
-
-  //Removes all old highlighted stops (in list-div)
-  //Highlights the corresponding "stop_id" 
-  function backgroundColorToggle(stop_id){
-    var allStopDivs = d3.select("#stops").selectAll("div")
-    allStopDivs.style("background-color","")
-    var stopDiv = d3.select("div.stop_"+stop_id)
-
-    stopDiv.style("background-color","white")  
-  }
+  var displayedDataKeys = ['stop_code']
 
   /*
   *
@@ -68,7 +54,7 @@
     fetch(url).then(function(response) {
       return response.json();
     }).then(function(data) {
-      data['data'].map((busStop,i) => {
+      data['data'].forEach((busStop,i) => {
        
         //Creates Icon
         var scoords =[busStop['stop_lat'],busStop['stop_lon']]     
@@ -95,11 +81,15 @@
         var parentDiv = d3.select('#stops')
           .append('div')
           .attr('class',"stopListEntry stop_"+busStop.stop_id)
-          .text((i+1) +". "+busStop.stop_name)
+          .text(busStop.stop_name)
           .on('click',() => {
             var clickedStop = stopIcons.filter(stop => stop['options']['stop_id'] == busStop.stop_id)[0]
             clickedStop.openPopup()
-            backgroundColorToggle(busStop.stop_id)
+
+            var stopSelectorString  = "div.stop_"+busStop.stop_id
+            backgroundColorToggle(busStop.stop_id,stopSelectorString)
+
+            getRealtimeData(busStop.stop_code, stopSelectorString)
           })
 
         //Add desired data to list
@@ -108,7 +98,7 @@
             parentDiv
               .append('div')
                 .attr("class","stopListData")
-                .text(formattedDataKeys[dataKey] + ": "+ busStop[dataKey])          
+                .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ busStop[dataKey])          
           }
         })//end stop list
 
