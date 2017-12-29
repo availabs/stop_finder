@@ -86,8 +86,8 @@ ccc.ccc--converted {
 
   padding-top:10px;
   padding-left:18px;
-  width: 109%!important;
-  margin-left:-18px;
+  width: 105%!important;
+  margin-left:-2%;
 
   overflow-y:auto;
   overflow-x:hidden;
@@ -96,9 +96,11 @@ ccc.ccc--converted {
 
 .toggle_collapse{
   float:right;
-  height:20px;
-  width:10px;
-  margin-right:18px;
+  margin-right:2%;
+}
+
+.toggleCollapseIcon{
+  margin-right:5px;
 }
 
 .collapsed{

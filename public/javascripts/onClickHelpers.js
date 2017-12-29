@@ -36,7 +36,7 @@ function getRealtimeData(stop_id,stopSelectorString){
     //Appending the toggle controls to header div
     var toggleCollapseDiv = realtimeHeaderDiv
       .append('div')
-      .style('float','right')
+      .attr("class","toggle_collapse")
       .on('click',() => {
         d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")
           .classed("collapse",function(d,i){
@@ -53,9 +53,7 @@ function getRealtimeData(stop_id,stopSelectorString){
       .text(data[0].currentTime)
 
     var toggleIcon = toggleCollapseDiv.append('i')
-      .attr('class','icon-collapse-top')
-      .style("margin-right","18px")
-
+      .attr('class','icon-collapse-top toggleCollapseIcon')
 
     //1st element is always the timestamp, which we already used
     data = data.slice(1)
