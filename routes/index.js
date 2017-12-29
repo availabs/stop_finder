@@ -22,10 +22,6 @@ router.get('/stops/:lnglat', function(req, res, next) {
 
 router.get('/stops/:lng/:lat',db.getNearbyStops);
 
-router.get('/realtime',function(req,res,next){
-  res.sendfile('./public/realtime.html');
-})
-
-router.all('/testparse',db.testParse);
+router.all('/realtime',db.getRealtimeData);
 
 module.exports = router;

@@ -8,14 +8,12 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "body-parser": "~1.18.2",
-    "cheerio": "^1.0.0-rc.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.15.5",
     "jade": "~1.11.0",
     "jsdom": "^11.5.1",
     "morgan": "~1.9.0",
-    "node-libcurl": "^1.2.0",
     "pg-promise": "^7.3.2",
     "serve-favicon": "~2.4.5"
   }

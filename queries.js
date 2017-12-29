@@ -1,9 +1,6 @@
 var promise = require('bluebird');
-var cheerio = require('cheerio')
-var Curl = require( 'node-libcurl' ).Curl;
 var jsdom = require("jsdom/lib/old-api.js");
 const { JSDOM } = jsdom;
-var serializeDocument = require("jsdom/lib/old-api.js").serializeDocument;
 var options = {
   // Initialization Options
   promiseLib: promise
@@ -12,20 +9,17 @@ var cn = require('./db_config.json')
 var pgp = require('pg-promise')(options);
 var db = pgp(cn);
 
-function testParse(req,res,next){
-  console.log("testParse req params",req.query)
+function getRealtimeData(req,res,next){
+  console.log("getRealtimeData req params",req.query)
 
   var routeId = req.query.routeId != "undefined" ? req.query.routeId : null,
       direction = req.query.direction != "undefined" ? req.query.direction : null,
       stopId = req.query.stopId != "undefined" ? req.query.stopId : null,
       showAllBusses = req.query.allBusses != "undefined" ? req.query.allBusses : null || "on";
 
-
-
   var url = "http://mybusnow.njtransit.com/bustime/wireless/html/"
 
   var url = `http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&findstop=on&selectedRtpiFeeds=&id=${ stopId }`
-
 
   // if(stopId && direction && routeId){
   //   url += `eta.jsp?route=${ routeId }&direction=${ direction }&id=${ stopId }&showAllBusses=${ showAllBusses }`
@@ -54,7 +48,6 @@ function testParse(req,res,next){
     ]
   }
 
-
   jsdom.env({
     url: url,
     features: {
@@ -68,11 +61,6 @@ function testParse(req,res,next){
       });
 
       var stopArray = []
-      /*
-      *
-      * USING VANILLA
-      *
-      */
 
       //If only a stopId is given, just looking for the 'font' tags
       //They display the nearby route + bus combinations
@@ -120,7 +108,6 @@ function testParse(req,res,next){
           if(curRowIndex == 6){
             curRowObj['bus'] = textContent.split('Vehicle ')[1]
           }
-
         }
 
         curRowIndex++;
@@ -130,7 +117,6 @@ function testParse(req,res,next){
     }
   });
 }
-
 
 // add query functions
 function getNearbyStops(req, res, next) {
@@ -155,7 +141,7 @@ function getNearbyStops(req, res, next) {
     ORDER BY 
       geom <-> st_setsrid(st_makepoint(${ lng },${ lat }),4326)
     LIMIT 
-      10;
+      15;
   `
 
   db.any(query)
@@ -172,8 +158,7 @@ function getNearbyStops(req, res, next) {
     });
 }
 
-
 module.exports = {
   getNearbyStops: getNearbyStops,
-  testParse:testParse
+  getRealtimeData:getRealtimeData
 };
