@@ -130,16 +130,18 @@ function getNearbyStops(req, res, next) {
       stop_name,
       stop_lat,
       stop_lon,
-      array_agg(route_id) as route_ids
+      array_agg(route_short_name) as route_ids
     FROM 
       gtfs1.stops,
-      gtfs1.route_stops
+      gtfs1.route_stops,
+      gtfs1.routes
     WHERE 
-      gtfs1.stops.stop_id = gtfs1.route_stops.stop_id
+      gtfs1.stops.stop_id = gtfs1.route_stops.stop_id AND 
+      gtfs1.routes.route_id = gtfs1.route_stops.route_id
     GROUP BY
       gtfs1.stops.stop_id
     ORDER BY 
-      geom <-> st_setsrid(st_makepoint(${ lng },${ lat }),4326)
+      gtfs1.stops.geom <-> st_setsrid(st_makepoint(${ lng },${ lat }),4326)
     LIMIT 
       15;
   `
