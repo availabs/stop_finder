@@ -130,7 +130,7 @@ function getNearbyStops(req, res, next) {
       stop_name,
       stop_lat,
       stop_lon,
-      array_agg(route_short_name) as route_ids
+      array_agg(DISTINCT route_short_name) as route_ids
     FROM 
       gtfs1.stops,
       gtfs1.route_stops,

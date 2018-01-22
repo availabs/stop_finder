@@ -2,7 +2,7 @@ const MAX_DISPLAYED_STOPS = 10
 const MIN_SCHEDULED_BUSSES = 1
 
 //Data from API that will be displayed (subset of those actually retreived)
-const DISPLAYED_DATA_KEYS = ['stop_id','stop_code','route_ids']
+const DISPLAYED_DATA_KEYS = ['route_ids']
 
 function displayStopData(busStop,realtime){
   //MIN_SCHEDULED_BUSSES check is less OR EQUAL TO because first data element is ALWAYS timestamp
@@ -35,7 +35,21 @@ function displayStopData(busStop,realtime){
   //Add stop to the list of stops
   var parentDiv = d3.select('#stops')
     .append('div')
-    .attr('class',"stopListEntry stop_"+busStop.stop_id)
+    .attr('class',"card stopListEntry stop_"+busStop.stop_id)
+      .append('div')
+      .attr('class',"card-block")
+
+
+  //Header/Title that has name of stop and stop #
+  var stopHeader = parentDiv
+                    .append('div')
+                    .attr("class","card-title")
+
+
+  //Stop Name
+  stopHeader
+    .append('span')
+    .attr('class',"")
     .text(busStop.stop_name)
     .on('click',() => {
       if(typeof map !== 'undefined'){
@@ -43,19 +57,25 @@ function displayStopData(busStop,realtime){
         clickedStop.openPopup()              
       }
 
-      var stopSelectorString  = "div.stop_"+busStop.stop_id
-      backgroundColorToggle(busStop.stop_id,stopSelectorString)
+    var stopSelectorString  = "div.stop_"+busStop.stop_id
+    backgroundColorToggle(busStop.stop_id,stopSelectorString)
 
 
-      getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
-    })
+    getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
+  })
+
+  //Stop Code
+  stopHeader
+    .append('span')
+    .attr("class", "pull-right")
+    .html("<b>Stop #:</b>"+ busStop["stop_code"])    
 
   //Add desired data to list
   Object.keys(busStop).forEach(dataKey => {
     if(DISPLAYED_DATA_KEYS.includes(dataKey)){
       parentDiv
         .append('div')
-          .attr("class","stopListData")
+          .attr("class","card-block stopListData")
           .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ busStop[dataKey])          
     }
   })//end iterating over stop properties
@@ -67,11 +87,11 @@ function displayRealtimeData(data,stopSelectorString){
 
   var realtimeContainerDiv = d3.select(stopSelectorString)
     .append('div')
-    .attr('class',"realtimeDataContainer")
+    .attr('class',"realtimeDataContainer card-block")
 
   //Appending header div to conatiner
   var realtimeHeaderDiv = realtimeContainerDiv.append("div")
-    .attr("class","realtimeDataHeader")
+    .attr("class","card-title realtimeDataHeader")
 
   realtimeHeaderDiv.append('text')
     .text('Service Status')
@@ -104,12 +124,11 @@ function displayRealtimeData(data,stopSelectorString){
   data.forEach((row,index) => {
     var realtimeContainerDiv = d3.select(stopSelectorString).select("div.realtimeDataContainer")
       .append('div')
-      .attr('class',"realtimeData "+row['bus'])
+      .attr('class',"card-text realtimeData "+row['bus'])
 
     Object.keys(row).forEach(dataKey => {
       realtimeContainerDiv
-        .append('div')
-          .attr("class","element")
+        .append('p')
           .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ row[dataKey])             
     })//attribute display loop    
   })//all data loop      

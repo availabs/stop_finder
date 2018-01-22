@@ -8,10 +8,27 @@
 <script src="./javascripts/getDataHelpers.js" /></script> <!-- Helps with getting data (realtime or static bus stops) -->
 <script src="./javascripts/displayHelpers.js" /></script> <!-- Helps with displaying data or display changes -->
 <link rel="stylesheet" href="/stylesheets/style.css">
-<div class='container'>
-  <h2>Nearby Transit Stops</h2>
+<div class='container-fluid' id="page_container">
+  <div class="row no-gutters" id="header_container">
+    <div class="col-6">
+      <div class="card text-center">
+        <div class="card-block">
+          <h1 class="card-title">Bus</h1>
+        </div>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="card text-center">
+        <div class="card-block">
+          <h1 class="card-title">Train</h1>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="row">
-    <div class="col-12" id="stops">
+    <div class="col-12">
+      <div class="col-10 offset-1" id="stops">
+      </div>
     </div>
   </div>
 </div>

@@ -1,7 +1,7 @@
 body {
   padding:20px;
   padding-top: 10px;
-  font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font: 1.75rem "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 a {
@@ -26,13 +26,26 @@ ccc.ccc--converted {
   }
 }
 
+#page_container{
+  background-color:#d6d6d6; 
+  padding:0px;   /*bootstrap override*/
+  min-height:100%;
+}
+
+#header_container{
+  margin-bottom:10px;
+}
+
+.card{
+  background-color:#efefef;
+}
+
 .stopIcon {
   width: 7px;
   background-color: red;
   border-radius: 50%;
 }
 .stopListEntry{
-  margin:5px;
   box-shadow: 0 0 10px 2px rgba(31,51,73,.1)!important;
   border-color: transparent!important;
   background-color: #efefef;
@@ -110,13 +123,13 @@ ccc.ccc--converted {
 
 .realtimeDataHeader{
   font-weight: bold;
-  font-size:18px;
+  font-size:1.75rem;
   margin-bottom:5px;
 }
 
 .realtimeDataTimestamp{
   font-weight: bold;
-  font-size:18px;
+  font-size:1.5rem;
   margin-bottom:5px;
   margin-right:10px;  
 }
@@ -130,7 +143,7 @@ ccc.ccc--converted {
 .realtimeData:last-of-type{
   margin-bottom:0px;
 }
-.realtimeDataContainer .element{
+.realtimeDataContainer p{
   margin-bottom:2px;
   margin-left:7px;
   transition: all .125s;
