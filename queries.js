@@ -130,6 +130,8 @@ function getNearbyStops(req, res, next) {
       stop_name,
       stop_lat,
       stop_lon,
+      array_agg(DISTINCT route_text_color) as route_text_colors,
+      array_agg(DISTINCT route_color) as route_colors,
       array_agg(DISTINCT route_short_name) as route_ids
     FROM 
       gtfs1.stops,

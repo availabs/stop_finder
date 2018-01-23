@@ -32,6 +32,17 @@ function displayStopData(busStop,realtime){
     sMarker.addTo(map)
   }
 
+  //If GTFS data does not include colors, we gotta make our own
+  if(
+    (busStop['route_text_colors'].length == 1 && busStop['route_text_colors'][0] == null) &&
+    (busStop['route_colors'].length == 1 && busStop['route_colors'][0] == null)
+    ){
+
+    //BASIC COLOR SCALE
+    var colorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([1,1000]);
+  }
+
+
   //Add stop to the list of stops
   var parentDiv = d3.select('#stops')
     .append('div')
@@ -49,7 +60,6 @@ function displayStopData(busStop,realtime){
   //Stop Name
   stopHeader
     .append('span')
-    .attr('class',"")
     .text(busStop.stop_name)
     .on('click',() => {
       if(typeof map !== 'undefined'){
@@ -59,7 +69,6 @@ function displayStopData(busStop,realtime){
 
     var stopSelectorString  = "div.stop_"+busStop.stop_id
     backgroundColorToggle(busStop.stop_id,stopSelectorString)
-
 
     getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
   })
@@ -73,10 +82,47 @@ function displayStopData(busStop,realtime){
   //Add desired data to list
   Object.keys(busStop).forEach(dataKey => {
     if(DISPLAYED_DATA_KEYS.includes(dataKey)){
-      parentDiv
-        .append('div')
-          .attr("class","card-block stopListData")
-          .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ busStop[dataKey])          
+      //Special stuff for route Ids, since we are adding colors and have to iterate over the data
+      if(dataKey == "route_ids"){
+        var dataDiv = parentDiv
+                        .append('div')
+                        .attr("class","card-block stopListData")
+                        .html("<b>"+formattedDataKeys[dataKey]+ ": </b>")
+
+
+        var svg = dataDiv.append("svg")
+          .attr("width", "20rem")
+          .attr("height", "1.75rem");
+
+
+
+        var groups = svg.selectAll(".groups")
+                                  .data(busStop[dataKey])
+                                  .enter()
+                                  .append("g")
+                                  .attr("class", "gbar");
+
+        groups.append('rect')
+          .attr("x",function(d,i){return ((i*4.5) + "rem")})
+
+          .attr('y', ".5rem")
+          .attr("width", function (d) { return "1rem" })
+          .attr("height", function (d) { return "1.25rem" })
+          .style("fill", function(d) { return colorScale(d); })
+
+        groups.append('text')
+          .text(function(d){return d;})
+          .attr("x",function(d,i){return ((i*4.5) + 1.1 + "rem")})
+          .attr('y', "1.75rem")
+          .attr("width","2rem")
+      }
+      else{
+        parentDiv
+          .append('div')
+            .attr("class","card-block stopListData")
+            .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ busStop[dataKey])           
+      }
+
     }
   })//end iterating over stop properties
 }//displayStopData
