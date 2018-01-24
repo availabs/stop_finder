@@ -56,7 +56,7 @@ function displayStopData(busStop,realtime){
                     .append('div')
                     .attr("class","card-title")
 
-
+  var stopSelectorString  = "div.stop_"+busStop.stop_id
   //Stop Name
   stopHeader
     .append('span')
@@ -66,8 +66,6 @@ function displayStopData(busStop,realtime){
         var clickedStop = stopIcons.filter(stop => stop['options']['stop_id'] == busStop.stop_id)[0]
         clickedStop.openPopup()              
       }
-
-    var stopSelectorString  = "div.stop_"+busStop.stop_id
     backgroundColorToggle(busStop.stop_id,stopSelectorString)
 
     getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
@@ -77,7 +75,30 @@ function displayStopData(busStop,realtime){
   stopHeader
     .append('span')
     .attr("class", "pull-right")
-    .html("<b>Stop #:</b>"+ busStop["stop_code"])    
+    .html("<b>Stop #: </b>"+ busStop["stop_code"])    
+
+  var toggleCollapseDiv = parentDiv
+    .append('div')
+    .attr("class", "pull-right")
+    .attr("class","toggle_collapse")
+    .on('click',() => {
+      
+
+      if(!d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")['_groups'].length){
+        getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
+      }
+
+
+        toggleIcon.remove()
+        d3.event.stopPropagation()
+    })
+
+  toggleCollapseDiv.append("text")
+    .attr("class","realtimeDataTimestamp")
+    .text("Get Service Status")
+
+  var toggleIcon = toggleCollapseDiv.append('i')
+    .attr('class','icon-collapse toggleCollapseIcon')
 
   //Add desired data to list
   Object.keys(busStop).forEach(dataKey => {
@@ -91,7 +112,7 @@ function displayStopData(busStop,realtime){
 
 
         var svg = dataDiv.append("svg")
-          .attr("width", "20rem")
+          .attr("width", "15rem")
           .attr("height", "1.75rem");
 
 
@@ -122,9 +143,10 @@ function displayStopData(busStop,realtime){
             .attr("class","card-block stopListData")
             .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ busStop[dataKey])           
       }
-
     }
   })//end iterating over stop properties
+
+
 }//displayStopData
 
 function displayRealtimeData(data,stopSelectorString){
@@ -135,15 +157,15 @@ function displayRealtimeData(data,stopSelectorString){
     .append('div')
     .attr('class',"realtimeDataContainer card-block")
 
-  //Appending header div to conatiner
-  var realtimeHeaderDiv = realtimeContainerDiv.append("div")
-    .attr("class","card-title realtimeDataHeader")
+  // //Appending header div to conatiner
+  // var realtimeHeaderDiv = realtimeContainerDiv.append("div")
+  //   .attr("class","card-title realtimeDataHeader")
 
-  realtimeHeaderDiv.append('text')
-    .text('Service Status')
+  // realtimeHeaderDiv.append('text')
+  //   .text('Service Status')
 
   //Appending the toggle controls to header div
-  var toggleCollapseDiv = realtimeHeaderDiv
+  var toggleCollapseDiv = realtimeContainerDiv
     .append('div')
     .attr("class","toggle_collapse")
     .on('click',() => {
@@ -157,19 +179,21 @@ function displayRealtimeData(data,stopSelectorString){
         d3.event.stopPropagation()
     })
 
-  toggleCollapseDiv.append("text")
-    .attr("class","realtimeDataTimestamp")
-    .text(data[0].currentTime)
+    
+
+  d3.select(stopSelectorString).select(".realtimeDataTimestamp")
+    .text("Last Updated: "+data[0].currentTime)
 
   var toggleIcon = toggleCollapseDiv.append('i')
     .attr('class','icon-collapse-top toggleCollapseIcon')
+    .style('margin-right',"1.65rem")
 
   //1st element is always the timestamp, which we already used
   data = data.slice(1)
 
   data.forEach((row,index) => {
     var realtimeContainerDiv = d3.select(stopSelectorString).select("div.realtimeDataContainer")
-      .append('div')
+      .append('span')
       .attr('class',"card-text realtimeData "+row['bus'])
 
     Object.keys(row).forEach(dataKey => {

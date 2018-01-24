@@ -109,7 +109,7 @@ ccc.ccc--converted {
 
 .toggle_collapse{
   float:right;
-  margin-right:2%;
+  display:inline;
 }
 
 .toggleCollapseIcon{
@@ -152,8 +152,7 @@ ccc.ccc--converted {
   justify-content: space-between!important;
   cursor: pointer!important;
   border-radius: 4px!important;  
-
-  display:inline-block;
+  display:block;
 }
 
 
