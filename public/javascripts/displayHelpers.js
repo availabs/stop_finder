@@ -1,5 +1,7 @@
 const MAX_DISPLAYED_STOPS = 10 
 const MIN_SCHEDULED_BUSSES = 1
+const DATA_TIMEOUT_MINUTES = 5
+const DATA_TIMEOUT_MS = 60 * 1000 * DATA_TIMEOUT_MINUTES
 
 //Data from API that will be displayed (subset of those actually retreived)
 const DISPLAYED_DATA_KEYS = ['route_ids']
@@ -59,7 +61,8 @@ function displayStopData(busStop,realtime){
   var stopSelectorString  = "div.stop_"+busStop.stop_id
   //Stop Name
   stopHeader
-    .append('span')
+    .append('div')
+    .attr("class","stopName")
     .text(busStop.stop_name)
     .on('click',() => {
       if(typeof map !== 'undefined'){
@@ -82,15 +85,42 @@ function displayStopData(busStop,realtime){
     .attr("class", "pull-right")
     .attr("class","toggle_collapse")
     .on('click',() => {
-      
-
       if(!d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")['_groups'].length){
         getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
       }
 
+      toggleIcon
+        .attr('class','icon-refresh toggleCollapseIcon rotate')
+        .on('click',() => {
+          d3.event.stopPropagation()
 
-        toggleIcon.remove()
-        d3.event.stopPropagation()
+          var t = d3.transition()
+              .duration(750)
+              .ease(d3.easeLinear);
+
+          function color(transition) {
+            let currentTransition = d3.select(transition.node()).style("transform")
+
+            console.log(currentTransition)
+
+
+            if(currentTransition == "none"){
+              var nextTransform = "rotate(180deg)"
+            }
+            else{
+              var nextTransform = "translate(0, 0)rotate("+(+currentTransition.split("rotate(")[1].replace(/\D/g, '') + 180) + "deg)"
+            }
+
+            transition
+                .style("transform",nextTransform)
+                // .style("background-color", "chartreuse");
+          }
+          d3.select(stopSelectorString).select("div.toggle_collapse").selectAll(".toggleCollapseIcon").transition(t).call(color)
+
+          getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
+        })
+
+      d3.event.stopPropagation()
     })
 
   toggleCollapseDiv.append("text")
@@ -170,8 +200,8 @@ function displayRealtimeData(data,stopSelectorString){
     .attr("class","toggle_collapse")
     .on('click',() => {
       d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")
-        .classed("collapse",function(d,i){
-          return !d3.select(this).classed("collapse")
+        .classed("collapsed",function(d,i){
+          return !d3.select(this).classed("collapsed")
         })
 
         toggleIcon.classed('icon-collapse-top',!toggleIcon.classed('icon-collapse-top'))
@@ -193,8 +223,8 @@ function displayRealtimeData(data,stopSelectorString){
 
   data.forEach((row,index) => {
     var realtimeContainerDiv = d3.select(stopSelectorString).select("div.realtimeDataContainer")
-      .append('span')
-      .attr('class',"card-text realtimeData "+row['bus'])
+      .append('div')
+      .attr('class',"card-text realtimeData collapsed "+row['bus'])
 
     Object.keys(row).forEach(dataKey => {
       realtimeContainerDiv
@@ -205,9 +235,25 @@ function displayRealtimeData(data,stopSelectorString){
   
   //After 5 minutes, remove the data (as it is likely outdated)
   setTimeout(function(){
-    d3.select(stopSelectorString).select("div.realtimeDataContainer").remove()
+    //Remove all realtime data
+    realtimeContainerDiv.remove()
+    //Reset section that displays timestamp or a button to get data
+    d3.select(stopSelectorString).select(".realtimeDataTimestamp")
+      .text("Get Service Status")
+
+    d3.select(stopSelectorString).select(".toggleCollapseIcon")
+      .attr("class", "icon-collapse toggleCollapseIcon")
+
     console.log("REMOVING")
-  },300000)
+  },DATA_TIMEOUT_MS)
+
+  setTimeout(function(){
+    d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")
+            .classed("collapsed",function(d,i){
+              return !d3.select(this).classed("collapsed")
+            })
+          },10)
+
 }//end displayRealtimeData
 
 //Removes all old highlighted stops (in list-div)

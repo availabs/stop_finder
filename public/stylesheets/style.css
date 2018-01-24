@@ -65,6 +65,12 @@ ccc.ccc--converted {
   overflow-x:hidden;
 }
 
+.stopName{
+  max-width:50%;
+  overflow:hidden;
+  display:inline-block;
+}
+
 .stopListData{
   margin:2px;
   margin-left:0px;
@@ -104,7 +110,7 @@ ccc.ccc--converted {
 
   overflow-y:auto;
   overflow-x:hidden;
-  max-height: 400px;
+  max-height: 200px;
 }
 
 .toggle_collapse{
@@ -114,10 +120,27 @@ ccc.ccc--converted {
 
 .toggleCollapseIcon{
   margin-right:5px;
+  display:inline-block;
 }
 
-.collapsed{
-  max-height:0px;
+/*.rotate{
+  -moz-transition: all 1s linear;
+  -webkit-transition: all 1s linear;
+  transition: all 1s linear;
+}
+
+.rotate.down{
+  -ms-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+  transform: rotate(180deg);
+}*/
+
+.card-text.realtimeData.collapsed{
+  visibility: hidden;
+  height: 0%;
+  opacity:0;
+  transition: visibility 500ms,opacity 300ms, height 500ms;
 }
 
 
@@ -135,7 +158,11 @@ ccc.ccc--converted {
 }
 
 
-.realtimeData{
+.card-text.realtimeData{
+  visibility: visible;
+  height: 25%;
+  opacity:1;
+  transition: visibility 500ms,opacity 300ms, height 500ms;
   margin-top:8px;
   margin-bottom:12px;
 }
