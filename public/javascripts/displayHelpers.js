@@ -3,6 +3,10 @@ const MIN_SCHEDULED_BUSSES = 1
 const DATA_TIMEOUT_MINUTES = 5
 const DATA_TIMEOUT_MS = 60 * 1000 * DATA_TIMEOUT_MINUTES
 
+const SERVICE_STATUS_TRANSITION_MS = 250
+const REFRESH_TRANSITION_MS = 500
+const SERVICE_STATUS_HEIGHT = "11.8rem"
+
 //Data from API that will be displayed (subset of those actually retreived)
 const DISPLAYED_DATA_KEYS = ['route_ids']
 
@@ -72,14 +76,13 @@ function displayStopData(busStop,realtime){
     backgroundColorToggle(busStop.stop_id,stopSelectorString)
 
     getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
-  })
+  }) 
 
-  //Stop Code
-  stopHeader
-    .append('span')
-    .attr("class", "pull-right")
-    .html("<b>Stop #: </b>"+ busStop["stop_code"])    
+  stopHeader.append("div")
+    .attr("class","realtimeDataTimestamp")
+    .style("float","right")
 
+  //Gets realtime data
   var toggleCollapseDiv = parentDiv
     .append('div')
     .attr("class", "pull-right")
@@ -90,38 +93,30 @@ function displayStopData(busStop,realtime){
       }
 
       toggleIcon
-        .attr('class','icon-refresh toggleCollapseIcon rotate')
+        .attr('class','icon-refresh toggleCollapseIcon')
         .on('click',() => {
           d3.event.stopPropagation()
 
-          var t = d3.transition()
-              .duration(750)
-              .ease(d3.easeLinear);
+          let currentTransition = d3.select(stopSelectorString).select("div.toggle_collapse").selectAll(".toggleCollapseIcon").style("transform")
 
-          function color(transition) {
-            let currentTransition = d3.select(transition.node()).style("transform")
-
-            console.log(currentTransition)
-
-
-            if(currentTransition == "none"){
-              var nextTransform = "rotate(180deg)"
-            }
-            else{
-              var nextTransform = "translate(0, 0)rotate("+(+currentTransition.split("rotate(")[1].replace(/\D/g, '') + 180) + "deg)"
-            }
-
-            transition
-                .style("transform",nextTransform)
-                // .style("background-color", "chartreuse");
+          if(currentTransition == "none"){
+            var nextTransform = "translate(0, 0)rotate(180deg)"
           }
-          d3.select(stopSelectorString).select("div.toggle_collapse").selectAll(".toggleCollapseIcon").transition(t).call(color)
+          else{
+            var nextTransform = "translate(0, 0)rotate("+(+currentTransition.split("rotate(")[1].replace(/\D/g, '') + 180) + "deg)"
+          }
+        
+          d3.select(stopSelectorString).select("div.toggle_collapse").selectAll(".toggleCollapseIcon").transition()
+            .duration(REFRESH_TRANSITION_MS)
+            .ease(d3.easeLinear)
+            .style("transform",nextTransform)
 
           getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
         })
 
       d3.event.stopPropagation()
     })
+
 
   toggleCollapseDiv.append("text")
     .attr("class","realtimeDataTimestamp")
@@ -140,12 +135,9 @@ function displayStopData(busStop,realtime){
                         .attr("class","card-block stopListData")
                         .html("<b>"+formattedDataKeys[dataKey]+ ": </b>")
 
-
         var svg = dataDiv.append("svg")
-          .attr("width", "15rem")
+          .attr("width", "20rem")
           .attr("height", "1.75rem");
-
-
 
         var groups = svg.selectAll(".groups")
                                   .data(busStop[dataKey])
@@ -154,16 +146,14 @@ function displayStopData(busStop,realtime){
                                   .attr("class", "gbar");
 
         groups.append('rect')
-          .attr("x",function(d,i){return ((i*4.5) + "rem")})
-
-          .attr('y', ".5rem")
+          .attr("x",function(d,i){return ((i*6) + "rem")})
           .attr("width", function (d) { return "1rem" })
-          .attr("height", function (d) { return "1.25rem" })
+          .attr("height", function (d) { return "2rem" })
           .style("fill", function(d) { return colorScale(d); })
 
         groups.append('text')
           .text(function(d){return d;})
-          .attr("x",function(d,i){return ((i*4.5) + 1.1 + "rem")})
+          .attr("x",function(d,i){return ((i*6) + 1.25 + "rem")})
           .attr('y', "1.75rem")
           .attr("width","2rem")
       }
@@ -187,36 +177,45 @@ function displayRealtimeData(data,stopSelectorString){
     .append('div')
     .attr('class',"realtimeDataContainer card-block")
 
-  // //Appending header div to conatiner
-  // var realtimeHeaderDiv = realtimeContainerDiv.append("div")
-  //   .attr("class","card-title realtimeDataHeader")
-
-  // realtimeHeaderDiv.append('text')
-  //   .text('Service Status')
-
   //Appending the toggle controls to header div
   var toggleCollapseDiv = realtimeContainerDiv
     .append('div')
     .attr("class","toggle_collapse")
     .on('click',() => {
-      d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")
-        .classed("collapsed",function(d,i){
-          return !d3.select(this).classed("collapsed")
-        })
 
-        toggleIcon.classed('icon-collapse-top',!toggleIcon.classed('icon-collapse-top'))
-        toggleIcon.classed('icon-collapse',!toggleIcon.classed('icon-collapse'))
-        d3.event.stopPropagation()
+      let currentHeight = d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").style("height")
+
+      if(currentHeight != "2rem" && currentHeight != "1rem"){
+        var nextHeight = "2rem"
+        var nextVisibility = "hidden"
+        var nextOverflowY = "hidden"
+        var nextOpacity = "0"
+      }
+      else{
+        var nextHeight = SERVICE_STATUS_HEIGHT
+        var nextVisibility = "visible"
+        var nextOverflowY = "auto"
+        var nextOpacity = "1"
+      }
+
+      d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").transition()
+        .duration(SERVICE_STATUS_TRANSITION_MS)
+        .ease(d3.easeLinear)
+        .style("height",nextHeight)
+        .style("overflow-y",nextOverflowY)
+        .style("overflow-x","hidden")
+        .style("opacity",nextOpacity)
+
+      toggleIcon.classed('icon-collapse-top',!toggleIcon.classed('icon-collapse-top'))
+      toggleIcon.classed('icon-collapse',!toggleIcon.classed('icon-collapse'))
+      d3.event.stopPropagation()
     })
-
-    
 
   d3.select(stopSelectorString).select(".realtimeDataTimestamp")
     .text("Last Updated: "+data[0].currentTime)
 
   var toggleIcon = toggleCollapseDiv.append('i')
     .attr('class','icon-collapse-top toggleCollapseIcon')
-    .style('margin-right',"1.65rem")
 
   //1st element is always the timestamp, which we already used
   data = data.slice(1)
@@ -225,6 +224,9 @@ function displayRealtimeData(data,stopSelectorString){
     var realtimeContainerDiv = d3.select(stopSelectorString).select("div.realtimeDataContainer")
       .append('div')
       .attr('class',"card-text realtimeData collapsed "+row['bus'])
+      .style('height',"1rem")
+      .style("overflow","hidden")
+      .style("opacity","0")
 
     Object.keys(row).forEach(dataKey => {
       realtimeContainerDiv
@@ -244,16 +246,16 @@ function displayRealtimeData(data,stopSelectorString){
     d3.select(stopSelectorString).select(".toggleCollapseIcon")
       .attr("class", "icon-collapse toggleCollapseIcon")
 
-    console.log("REMOVING")
   },DATA_TIMEOUT_MS)
 
-  setTimeout(function(){
-    d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")
-            .classed("collapsed",function(d,i){
-              return !d3.select(this).classed("collapsed")
-            })
-          },10)
-
+  //Creates transition effect when getting new data
+  d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").transition()
+    .duration(SERVICE_STATUS_TRANSITION_MS)
+    .ease(d3.easeLinear)
+    .style("height",SERVICE_STATUS_HEIGHT)
+    .style("overflow-y","auto")
+    .style("overflow-x","hidden")
+    .style("opacity","1")
 }//end displayRealtimeData
 
 //Removes all old highlighted stops (in list-div)
