@@ -236,8 +236,11 @@ function displayRealtimeData(data,stopSelectorString){
     //Remove all realtime data
     realtimeContainerDiv.remove()
     //Reset section that displays timestamp or a button to get data
-    d3.select(stopSelectorString).select(".realtimeDataTimestamp")
+    d3.select(stopSelectorString).select(".toggle-collapse.realtimeDataTimestamp")
       .text("Get Service Status")
+
+    d3.select(stopSelectorString).select(".card-title .realtimeDataTimestamp")
+      .text("")
 
     d3.select(stopSelectorString).select(".toggleCollapseIcon")
       .attr("class", "icon-collapse toggleCollapseIcon")
