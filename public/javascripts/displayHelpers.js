@@ -73,8 +73,8 @@ function displayStopData(busStop,realtime){
         var clickedStop = stopIcons.filter(stop => stop['options']['stop_id'] == busStop.stop_id)[0]
         clickedStop.openPopup()              
       }
-    backgroundColorToggle(busStop.stop_id,stopSelectorString)
 
+    backgroundColorToggle(busStop.stop_id,stopSelectorString)
     getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
   }) 
 
@@ -89,6 +89,7 @@ function displayStopData(busStop,realtime){
     .attr("class","toggle_collapse")
     .on('click',() => {
       if(!d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")['_groups'].length){
+        backgroundColorToggle(busStop.stop_id,stopSelectorString)
         getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
       }
 
@@ -110,7 +111,7 @@ function displayStopData(busStop,realtime){
             .duration(REFRESH_TRANSITION_MS)
             .ease(d3.easeLinear)
             .style("transform",nextTransform)
-
+          backgroundColorToggle(busStop.stop_id,stopSelectorString)
           getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
         })
 
@@ -261,9 +262,14 @@ function displayRealtimeData(data,stopSelectorString){
 //Removes all old highlighted stops (in list-div)
 //Highlights the corresponding "stop_id" 
 function backgroundColorToggle(stop_id,stopSelectorString){
-  var allStopDivs = d3.select("#stops").selectAll("div")
-  allStopDivs.style("background-color","")
-  var stopDiv = d3.select(stopSelectorString)
+  d3.select("#stops").selectAll("div.stopListEntry").transition()
+    .duration(REFRESH_TRANSITION_MS)
+    .ease(d3.easeLinear)
+    .style("background-color","#efefef")
 
-  stopDiv.style("background-color","white")  
+  d3.select(stopSelectorString).transition()
+    .duration(REFRESH_TRANSITION_MS)
+    .ease(d3.easeLinear)
+    .style("background-color","white")  
+
 }
