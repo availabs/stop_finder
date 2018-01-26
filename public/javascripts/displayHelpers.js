@@ -5,7 +5,7 @@ const DATA_TIMEOUT_MS = 60 * 1000 * DATA_TIMEOUT_MINUTES
 
 const SERVICE_STATUS_TRANSITION_MS = 250
 const REFRESH_TRANSITION_MS = 500
-const SERVICE_STATUS_HEIGHT = "11.8rem"
+const SERVICE_STATUS_HEIGHT = "15rem"
 
 //Data from API that will be displayed (subset of those actually retreived)
 const DISPLAYED_DATA_KEYS = ['route_ids']
@@ -184,27 +184,23 @@ function displayRealtimeData(data,stopSelectorString){
     .attr("class","toggle_collapse")
     .on('click',() => {
 
-      let currentHeight = d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").style("height")
+      let currentHeight = d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").style("max-height")
 
       if(currentHeight != "2rem" && currentHeight != "1rem"){
         var nextHeight = "2rem"
-        var nextVisibility = "hidden"
-        var nextOverflowY = "hidden"
         var nextOpacity = "0"
       }
       else{
         var nextHeight = SERVICE_STATUS_HEIGHT
         var nextVisibility = "visible"
-        var nextOverflowY = "auto"
         var nextOpacity = "1"
       }
 
       d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").transition()
         .duration(SERVICE_STATUS_TRANSITION_MS)
         .ease(d3.easeLinear)
-        .style("height",nextHeight)
-        .style("overflow-y",nextOverflowY)
-        .style("overflow-x","hidden")
+        .style("max-height",nextHeight)
+
         .style("opacity",nextOpacity)
 
       toggleIcon.classed('icon-collapse-top',!toggleIcon.classed('icon-collapse-top'))
@@ -224,9 +220,8 @@ function displayRealtimeData(data,stopSelectorString){
   data.forEach((row,index) => {
     var realtimeContainerDiv = d3.select(stopSelectorString).select("div.realtimeDataContainer")
       .append('div')
-      .attr('class',"card-text realtimeData collapsed "+row['bus'])
-      .style('height',"1rem")
-      .style("overflow","hidden")
+      .attr('class',"card-text realtimeData "+row['bus'])
+      .style('max-height',"1rem")
       .style("opacity","0")
 
     Object.keys(row).forEach(dataKey => {
@@ -253,9 +248,7 @@ function displayRealtimeData(data,stopSelectorString){
   d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").transition()
     .duration(SERVICE_STATUS_TRANSITION_MS)
     .ease(d3.easeLinear)
-    .style("height",SERVICE_STATUS_HEIGHT)
-    .style("overflow-y","auto")
-    .style("overflow-x","hidden")
+    .style("max-height",SERVICE_STATUS_HEIGHT)
     .style("opacity","1")
 }//end displayRealtimeData
 
