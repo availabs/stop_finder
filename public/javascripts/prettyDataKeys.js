@@ -2,9 +2,10 @@
 var formattedDataKeys = {
   'stop_id':"Stop ID",
   'stop_code':"Stop #",
-  'route_ids':"Route IDs",
+  'route_ids':"Routes",
   'route':"Route #",
   'description':"Description",
   'time':"ETA",
-  'bus': 'Bus #'
+  'bus': 'Bus #',
+  'distance': "Distance (meters)"
 }

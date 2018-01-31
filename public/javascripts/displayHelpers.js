@@ -8,7 +8,11 @@ const REFRESH_TRANSITION_MS = 500
 const SERVICE_STATUS_HEIGHT = "15rem"
 
 //Data from API that will be displayed (subset of those actually retreived)
-const DISPLAYED_DATA_KEYS = ['route_ids']
+const DISPLAYED_DATA_KEYS = ['route_ids', 'distance']
+
+const DISPLAYED_REALTIME_KEYS = ['description','time','bus']
+
+const DISTANCE_FORMAT = d3.format(".3n")
 
 function displayStopData(busStop,realtime){
   //MIN_SCHEDULED_BUSSES check is less OR EQUAL TO because first data element is ALWAYS timestamp
@@ -61,6 +65,7 @@ function displayStopData(busStop,realtime){
   var stopHeader = parentDiv
                     .append('div')
                     .attr("class","card-title")
+                    .style("font-weight", "bold")
 
   var stopSelectorString  = "div.stop_"+busStop.stop_id
   //Stop Name
@@ -77,10 +82,6 @@ function displayStopData(busStop,realtime){
     backgroundColorToggle(busStop.stop_id,stopSelectorString)
     getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
   }) 
-
-  stopHeader.append("div")
-    .attr("class","realtimeDataTimestamp")
-    .style("float","right")
 
   //Gets realtime data
   var toggleCollapseDiv = parentDiv
@@ -119,6 +120,9 @@ function displayStopData(busStop,realtime){
     })
 
 
+  toggleCollapseDiv.append("div")
+    .attr("class","realtimeDataTimestamp")
+
   toggleCollapseDiv.append("text")
     .attr("class","realtimeDataTimestamp")
     .text("Get Service Status")
@@ -137,8 +141,8 @@ function displayStopData(busStop,realtime){
                         .html("<b>"+formattedDataKeys[dataKey]+ ": </b>")
 
         var svg = dataDiv.append("svg")
-          .attr("width", "20rem")
-          .attr("height", "1.75rem");
+          .attr("width", "18rem")
+          .attr("height", "2rem");
 
         var groups = svg.selectAll(".groups")
                                   .data(busStop[dataKey])
@@ -155,8 +159,14 @@ function displayStopData(busStop,realtime){
         groups.append('text')
           .text(function(d){return d;})
           .attr("x",function(d,i){return ((i*6) + 1.25 + "rem")})
-          .attr('y', "1.75rem")
+          .attr('y', "2rem")
           .attr("width","2rem")
+      }
+      else if(dataKey == "distance"){
+        parentDiv
+          .append('div')
+            .attr("class","card-block stopListData")
+            .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ DISTANCE_FORMAT(busStop[dataKey]))  
       }
       else{
         parentDiv
@@ -177,31 +187,54 @@ function displayRealtimeData(data,stopSelectorString){
   var realtimeContainerDiv = d3.select(stopSelectorString)
     .append('div')
     .attr('class',"realtimeDataContainer card-block")
+    .style("max-height", SERVICE_STATUS_HEIGHT)
+    .style("overflow","auto")
 
   //Appending the toggle controls to header div
   var toggleCollapseDiv = realtimeContainerDiv
     .append('div')
     .attr("class","toggle_collapse")
     .on('click',() => {
+console.log("onclick REALTIEM TOGGLE")
+      let currentHeight = d3.select(stopSelectorString).select("div.realtimeDataContainer").style("max-height")
 
-      let currentHeight = d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").style("max-height")
-
-      if(currentHeight != "2rem" && currentHeight != "1rem"){
-        var nextHeight = "2rem"
+      if(currentHeight != "3rem" && currentHeight != "1rem"){
+        var nextHeight = "3rem"
         var nextOpacity = "0"
+        var nextOverflow = "hidden"
+
+        var nextDataHeight = "0"
+        var nextDataWidth = "0"
+        var nextDataPadding = "0"
+        var nextDataMargin = "0"
+        var nextBorder = "0px"
       }
       else{
         var nextHeight = SERVICE_STATUS_HEIGHT
-        var nextVisibility = "visible"
+
         var nextOpacity = "1"
+        var nextOverflow = "auto"
+      
+        var nextDataHeight = SERVICE_STATUS_HEIGHT
+        var nextDataWidth = ""
+        var nextDataPadding = ""
+        var nextDataMargin = ""
+        var nextBorder = ""
       }
+
+      d3.select(stopSelectorString).select("div.realtimeDataContainer").transition()
+        .duration(SERVICE_STATUS_TRANSITION_MS)
+        .ease(d3.easeLinear)
+        .style("max-height",nextHeight)
+        .style("overflow",nextOverflow)
 
       d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").transition()
         .duration(SERVICE_STATUS_TRANSITION_MS)
         .ease(d3.easeLinear)
-        .style("max-height",nextHeight)
-
         .style("opacity",nextOpacity)
+        .style("width",nextDataWidth)
+
+
 
       toggleIcon.classed('icon-collapse-top',!toggleIcon.classed('icon-collapse-top'))
       toggleIcon.classed('icon-collapse',!toggleIcon.classed('icon-collapse'))
@@ -225,9 +258,12 @@ function displayRealtimeData(data,stopSelectorString){
       .style("opacity","0")
 
     Object.keys(row).forEach(dataKey => {
-      realtimeContainerDiv
-        .append('p')
-          .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ row[dataKey])             
+      if(DISPLAYED_REALTIME_KEYS.includes(dataKey)){
+        realtimeContainerDiv
+          .append('p')
+            .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ row[dataKey])  
+      }
+           
     })//attribute display loop    
   })//all data loop      
   
