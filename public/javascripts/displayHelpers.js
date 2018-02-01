@@ -176,8 +176,6 @@ function displayStopData(busStop,realtime){
       }
     }
   })//end iterating over stop properties
-
-
 }//displayStopData
 
 function displayRealtimeData(data,stopSelectorString){
@@ -195,7 +193,6 @@ function displayRealtimeData(data,stopSelectorString){
     .append('div')
     .attr("class","toggle_collapse")
     .on('click',() => {
-console.log("onclick REALTIEM TOGGLE")
       let currentHeight = d3.select(stopSelectorString).select("div.realtimeDataContainer").style("max-height")
 
       if(currentHeight != "3rem" && currentHeight != "1rem"){
@@ -205,9 +202,6 @@ console.log("onclick REALTIEM TOGGLE")
 
         var nextDataHeight = "0"
         var nextDataWidth = "0"
-        var nextDataPadding = "0"
-        var nextDataMargin = "0"
-        var nextBorder = "0px"
       }
       else{
         var nextHeight = SERVICE_STATUS_HEIGHT
@@ -217,9 +211,6 @@ console.log("onclick REALTIEM TOGGLE")
       
         var nextDataHeight = SERVICE_STATUS_HEIGHT
         var nextDataWidth = ""
-        var nextDataPadding = ""
-        var nextDataMargin = ""
-        var nextBorder = ""
       }
 
       d3.select(stopSelectorString).select("div.realtimeDataContainer").transition()
@@ -234,8 +225,6 @@ console.log("onclick REALTIEM TOGGLE")
         .style("opacity",nextOpacity)
         .style("width",nextDataWidth)
 
-
-
       toggleIcon.classed('icon-collapse-top',!toggleIcon.classed('icon-collapse-top'))
       toggleIcon.classed('icon-collapse',!toggleIcon.classed('icon-collapse'))
       d3.event.stopPropagation()
@@ -243,6 +232,19 @@ console.log("onclick REALTIEM TOGGLE")
 
   d3.select(stopSelectorString).select(".realtimeDataTimestamp")
     .text("Last Updated: "+data[0].currentTime)
+
+  /*
+  * 
+  * Parses last-updated time to use when displaying ETA
+  *
+  */
+
+  var updatedTime = data[0].currentTime.split(" ")[0]
+  var amPmTag = data[0].currentTime.split(" ")[1]
+  if(amPmTag == "PM"){
+    updatedTime = (+updatedTime.split(":")[0] + 12) +":"+ updatedTime.split(":")[1]
+  }
+
 
   var toggleIcon = toggleCollapseDiv.append('i')
     .attr('class','icon-collapse-top toggleCollapseIcon')
@@ -259,29 +261,33 @@ console.log("onclick REALTIEM TOGGLE")
 
     Object.keys(row).forEach(dataKey => {
       if(DISPLAYED_REALTIME_KEYS.includes(dataKey)){
-        realtimeContainerDiv
-          .append('p')
-            .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ row[dataKey])  
-      }
-           
+        if(dataKey == "time"){
+          var parseHour = d3.timeParse("%I:%M")
+
+          //Means that the ETA is listed as "< 1 min"
+          if(row[dataKey].indexOf("<") != -1){
+            var timeEtaString = updatedTime
+          }
+          else{
+            //Otherwise, get the minutes from ETA, add to last updated time
+            var minutesEta = row[dataKey].split("MIN")[0]
+
+            var timeEta = d3.timeMinute.offset(parseHour(updatedTime), minutesEta)  
+            var timeEtaString = (timeEta.getHours() == 0 ? "12" : timeEta.getHours()) + ":" + timeEta.getMinutes()           
+          }
+
+          realtimeContainerDiv
+            .append('p')
+              .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ timeEtaString + " " + amPmTag + " ("+row[dataKey]+")")   
+        }
+        else{
+          realtimeContainerDiv
+            .append('p')
+              .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ row[dataKey])            
+        }
+      }//check for which data keys to display    
     })//attribute display loop    
   })//all data loop      
-  
-  //After 5 minutes, remove the data (as it is likely outdated)
-  setTimeout(function(){
-    //Remove all realtime data
-    realtimeContainerDiv.remove()
-    //Reset section that displays timestamp or a button to get data
-    d3.select(stopSelectorString).select(".toggle-collapse.realtimeDataTimestamp")
-      .text("Get Service Status")
-
-    d3.select(stopSelectorString).select(".card-title .realtimeDataTimestamp")
-      .text("")
-
-    d3.select(stopSelectorString).select(".toggleCollapseIcon")
-      .attr("class", "icon-collapse toggleCollapseIcon")
-
-  },DATA_TIMEOUT_MS)
 
   //Creates transition effect when getting new data
   d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").transition()
@@ -303,5 +309,4 @@ function backgroundColorToggle(stop_id,stopSelectorString){
     .duration(REFRESH_TRANSITION_MS)
     .ease(d3.easeLinear)
     .style("background-color","white")  
-
 }

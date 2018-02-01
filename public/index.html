@@ -31,20 +31,38 @@
 <script>  
   var params = getSearchParameters();
 
-  var start = [ 
-    params.lat || 40.487692978918865,
-    params.lng || -74.38568115234375
-  ]
+  if(navigator && navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(position => {
 
-  /*
-  *
-  * LEAFLET TAKES COORDS AS: LAT/LNG
-  * POSTGIS TAKES COORDS AS: LNG/LAT
-  * Parameter is LAT/LNG in order to work with Leaflet
-  * Function reverses it when creating URL to get data
-  *
-  */
-  getStopData(start)
+      /*
+      * Just a "random"  lat-lng in NJ
+      */
+      var start = [ 
+        params.lat || 40.487692978918865,
+        params.lng || -74.38568115234375
+      ]
 
+      /*
+      * Actually uses geolocation
+      */
+      // var start = [ 
+      //   position.coords.latitude,
+      //   position.coords.longitude
+      // ]
 
+      /*
+      *
+      * LEAFLET TAKES COORDS AS: LAT/LNG
+      * POSTGIS TAKES COORDS AS: LNG/LAT
+      * Parameter is LAT/LNG in order to work with Leaflet
+      * Function reverses it when creating URL to get data
+      *
+      */
+      getStopData(start)
+
+    })
+  }
+  else{
+    console.log("No location was provided")
+  }
 </script>

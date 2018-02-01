@@ -39,11 +39,21 @@ app.get('/stops/:lng/:lat', function (req, res, next) {
 
 }, function(req,res,next){
   //console.log("NOT IN NJ")
-  res.send("Your location is not in NJ")
+
+  /*
+  * Throws an error if lat/lng is outside of NJ
+  * Disabled for testing
+  */
+  // var err = new Error('Not Found');
+  // err.status = 404;
+  // next(err);
+
+  next()
 })
 
 app.use('/', index);
 app.use(express.static(__dirname + '/public'));
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

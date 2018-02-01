@@ -7,8 +7,6 @@
 *
 */
 function getStopData (coords) {
-  let newUrl = ((window.location.pathname == "/") ? "" : window.location.pathname) + `?lng=${ coords[1] }&lat=${ coords[0] }`
-  window.history.pushState("", "", newUrl);
   //Closes any open popups
   //Removes old icons
   //Removes list of stops
@@ -28,15 +26,20 @@ function getStopData (coords) {
   console.log('url', url)
 
   fetch(url).then(function(response) {
-    return response.json();
+    if(response.ok){
+      return response.json();
+    }
+    throw new Error(response.statusText);
   }).then(function(data) {
+
     data['data'].forEach((busStop,i) => {
 
       //displayStopData will also filter out stops that do not have service
       getRealtimeData(busStop.stop_code, null, displayStopData.bind(null,busStop))
 
-      //displayStopData(busStop)
     });//end data loop
+  }).catch(function(error) {
+    console.log('There has been a problem with your fetch operation: ', "Location Outside of NJ");
   });//end fetch
 }//end getData
 
