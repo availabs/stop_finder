@@ -159,44 +159,26 @@ function displayStopData(busStop,realtime){
             .text(routeId)
 
         })
-
-
-
-
-
-        // var groups = svg.selectAll(".groups")
-        //                           .data(busStop[dataKey])
-        //                           .enter()
-        //                           .append("g")
-        //                           .attr("class", "gbar");
-
-        // groups.append('rect')
-        //   .attr("x",function(d,i){return ((i*6) + "rem")})
-        //   .attr("width", function (d) { return "1rem" })
-        //   .attr("height", function (d) { return "2rem" })
-        //   .style("fill", function(d) { return colorScale(d); })
-
-        // groups.append('text')
-        //   .text(function(d){return d;})
-        //   .attr("x",function(d,i){return ((i*6) + 1.25 + "rem")})
-        //   .attr('y', "2rem")
-        //   .attr("width","2rem")
       }
       else if(dataKey == "distance"){
         //Converts from meters (from DB) to miles
         var displayedDistance = busStop[dataKey] / 1609
-        var unit = "mi"
+        var unit = " mi"
 
+        //If somehow they are 100 miles away from a stop, this deal with rounding/number formatting issues
+        if(displayedDistance >= 100){
+          var unit = "+ mi"
+        }
         //If under 1/3 mile, display in feet
         if(displayedDistance < .33){
           var displayedDistance = displayedDistance * 5280
-          var unit = "ft"
+          var unit = " ft"
         }
 
         parentDiv
           .append('text')
             .attr("class","card-block stopListData distance")
-            .text(DISTANCE_FORMAT(displayedDistance) + " " + unit)  
+            .text(DISTANCE_FORMAT(displayedDistance) + unit)  
       }
       else{
         parentDiv
@@ -268,9 +250,6 @@ function displayRealtimeData(data,stopSelectorString){
   * Parses last-updated time to use when displaying ETA
   *
   */
-
-
-
   var updatedTime = data[0].currentTime.split(" ")[0]
   var amPmTag = data[0].currentTime.split(" ")[1]
   if(amPmTag == "PM"){
@@ -314,7 +293,6 @@ function displayRealtimeData(data,stopSelectorString){
 
               var etaMinutes = timeEta.getMinutes() < 10 ? "0" + timeEta.getMinutes() : timeEta.getMinutes()          
               var etaHours = timeEta.getHours() == 0 ? "12" : timeEta.getHours()
-                                          console.log(etaHours, etaMinutes)
               var timeEtaString = etaHours + ":" + etaMinutes
             }
 

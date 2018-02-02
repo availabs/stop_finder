@@ -64,6 +64,7 @@ ccc.ccc--converted {
 }
 
 .stopName{
+  text-overflow: ellipsis;
   overflow:hidden;
   display:inline-block;
   max-width:95%;
@@ -162,6 +163,7 @@ div.card-text.realtimeData:nth-child(2){
   
 .card-title{
   margin-bottom:.25rem;
+  white-space: nowrap;
 }
 
 .distance{
