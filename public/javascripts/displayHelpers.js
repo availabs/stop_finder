@@ -122,6 +122,7 @@ function displayStopData(busStop,realtime){
 
   toggleCollapseDiv.append("div")
     .attr("class","realtimeDataTimestamp")
+    .style("height","2.25rem")
 
   toggleCollapseDiv.append("text")
     .attr("class","realtimeDataTimestamp")
