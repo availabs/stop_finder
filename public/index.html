@@ -35,20 +35,12 @@
     navigator.geolocation.getCurrentPosition(position => {
 
       /*
-      * Just a "random"  lat-lng in NJ
+      * If URL has params, use those
       */
       var start = [ 
-        params.lat || 40.487692978918865,
-        params.lng || -74.38568115234375
+        params.lat || position.coords.latitude,
+        params.lng || position.coords.longitude
       ]
-
-      /*
-      * Actually uses geolocation
-      */
-      // var start = [ 
-      //   position.coords.latitude,
-      //   position.coords.longitude
-      // ]
 
       /*
       *
@@ -63,6 +55,19 @@
     })
   }
   else{
-    console.log("No location was provided")
+
+    var start = [ 
+      params.lat || null,
+      params.lng || null
+    ]
+
+    if(params[0] && params[1]){
+      getStopData(start)
+    }
+    else{
+      console.log("No location was provided")
+    }
+
+
   }
 </script>

@@ -144,13 +144,14 @@ function getNearbyStops(req, res, next) {
     GROUP BY
       gtfs1.stops.stop_id
     ORDER BY 
-      gtfs1.stops.geom <-> st_setsrid(st_makepoint(${ lng },${ lat }),4326)
+      distance
     LIMIT 
       15;
   `
-
+console.log(query)
   db.any(query)
     .then(function (data) {
+      console.log(data)
       res.status(200)
         .json({
           status: 'success',

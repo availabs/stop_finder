@@ -70,7 +70,7 @@ ccc.ccc--converted {
 }
 
 .stopListData{
-  margin:2px;
+  margin:.5rem;
   margin-left:0px;
 }
 
@@ -110,6 +110,7 @@ ccc.ccc--converted {
 .toggle_collapse{
   float:right;
   display:inline;
+  text-align: right;
 }
 
 .toggleCollapseIcon{
@@ -159,3 +160,19 @@ div.card-text.realtimeData:nth-child(2){
 
 
   
+.card-title{
+  margin-bottom:.25rem;
+}
+
+.distance{
+  font-size: 2rem
+}
+
+.route-number{
+  margin:1rem;
+  margin-left:0;
+
+  padding:.5rem;
+
+  font-weight: bold;
+}

@@ -12,7 +12,7 @@ const DISPLAYED_DATA_KEYS = ['route_ids', 'distance']
 
 const DISPLAYED_REALTIME_KEYS = ['description','time','bus']
 
-const DISTANCE_FORMAT = d3.format(".3n")
+const DISTANCE_FORMAT = d3.format(".2r")
 
 function displayStopData(busStop,realtime){
   //MIN_SCHEDULED_BUSSES check is less OR EQUAL TO because first data element is ALWAYS timestamp
@@ -138,35 +138,65 @@ function displayStopData(busStop,realtime){
         var dataDiv = parentDiv
                         .append('div')
                         .attr("class","card-block stopListData")
-                        .html("<b>"+formattedDataKeys[dataKey]+ ": </b>")
 
-        var svg = dataDiv.append("svg")
-          .attr("width", "18rem")
-          .attr("height", "2rem");
+        /*
+         * Get color (black/white) depending on bgColor so it would be clearly seen.
+         * @param bgColor
+         * @returns {string}
+         * https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
+         */
+        function getColorByBgColor(bgColor) {
+            if (!bgColor) { return ''; }
+            return (parseInt(bgColor.replace('#', ''), 16) > 0xffffff / 2) ? '#000' : '#fff';
+        }
 
-        var groups = svg.selectAll(".groups")
-                                  .data(busStop[dataKey])
-                                  .enter()
-                                  .append("g")
-                                  .attr("class", "gbar");
+        busStop[dataKey].forEach(routeId => {
+          dataDiv
+            .append('span')
+            .attr("class", "route-number")
+            .style("background-color",colorScale(routeId) )
+            .style("color",getColorByBgColor(colorScale(routeId)))
+            .text(routeId)
 
-        groups.append('rect')
-          .attr("x",function(d,i){return ((i*6) + "rem")})
-          .attr("width", function (d) { return "1rem" })
-          .attr("height", function (d) { return "2rem" })
-          .style("fill", function(d) { return colorScale(d); })
+        })
 
-        groups.append('text')
-          .text(function(d){return d;})
-          .attr("x",function(d,i){return ((i*6) + 1.25 + "rem")})
-          .attr('y', "2rem")
-          .attr("width","2rem")
+
+
+
+
+        // var groups = svg.selectAll(".groups")
+        //                           .data(busStop[dataKey])
+        //                           .enter()
+        //                           .append("g")
+        //                           .attr("class", "gbar");
+
+        // groups.append('rect')
+        //   .attr("x",function(d,i){return ((i*6) + "rem")})
+        //   .attr("width", function (d) { return "1rem" })
+        //   .attr("height", function (d) { return "2rem" })
+        //   .style("fill", function(d) { return colorScale(d); })
+
+        // groups.append('text')
+        //   .text(function(d){return d;})
+        //   .attr("x",function(d,i){return ((i*6) + 1.25 + "rem")})
+        //   .attr('y', "2rem")
+        //   .attr("width","2rem")
       }
       else if(dataKey == "distance"){
+        //Converts from meters (from DB) to miles
+        var displayedDistance = busStop[dataKey] / 1609
+        var unit = "mi"
+
+        //If under 1/3 mile, display in feet
+        if(displayedDistance < .33){
+          var displayedDistance = displayedDistance * 5280
+          var unit = "ft"
+        }
+
         parentDiv
-          .append('div')
-            .attr("class","card-block stopListData")
-            .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ DISTANCE_FORMAT(busStop[dataKey]))  
+          .append('text')
+            .attr("class","card-block stopListData distance")
+            .text(DISTANCE_FORMAT(displayedDistance) + " " + unit)  
       }
       else{
         parentDiv
@@ -239,6 +269,8 @@ function displayRealtimeData(data,stopSelectorString){
   *
   */
 
+
+
   var updatedTime = data[0].currentTime.split(" ")[0]
   var amPmTag = data[0].currentTime.split(" ")[1]
   if(amPmTag == "PM"){
@@ -264,26 +296,44 @@ function displayRealtimeData(data,stopSelectorString){
         if(dataKey == "time"){
           var parseHour = d3.timeParse("%I:%M")
 
-          //Means that the ETA is listed as "< 1 min"
-          if(row[dataKey].indexOf("<") != -1){
-            var timeEtaString = updatedTime
+          if(row[dataKey] == "DELAYED"){
+            realtimeContainerDiv
+              .append('p')
+                .html(row[dataKey])  
           }
           else{
-            //Otherwise, get the minutes from ETA, add to last updated time
-            var minutesEta = row[dataKey].split("MIN")[0]
+            //Means that the ETA is listed as "< 1 min"
+            if(row[dataKey].indexOf("<") != -1){
+              var timeEtaString = updatedTime
+            }
+            else{
+              //Otherwise, get the minutes from ETA, add to last updated time
+              var minutesEta = row[dataKey].split("MIN")[0]
 
-            var timeEta = d3.timeMinute.offset(parseHour(updatedTime), minutesEta)  
-            var timeEtaString = (timeEta.getHours() == 0 ? "12" : timeEta.getHours()) + ":" + timeEta.getMinutes()           
+              var timeEta = d3.timeMinute.offset(parseHour(updatedTime), minutesEta)  
+
+              var etaMinutes = timeEta.getMinutes() < 10 ? "0" + timeEta.getMinutes() : timeEta.getMinutes()          
+              var etaHours = timeEta.getHours() == 0 ? "12" : timeEta.getHours()
+                                          console.log(etaHours, etaMinutes)
+              var timeEtaString = etaHours + ":" + etaMinutes
+            }
+
+            realtimeContainerDiv
+              .append('p')
+                .html(timeEtaString + " " + amPmTag + " ("+row[dataKey]+")")               
           }
 
+
+        }
+        else if(dataKey == "description"){
           realtimeContainerDiv
             .append('p')
-              .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ timeEtaString + " " + amPmTag + " ("+row[dataKey]+")")   
+              .html(row[dataKey])           
         }
         else{
           realtimeContainerDiv
             .append('p')
-              .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ row[dataKey])            
+              .html(formattedDataKeys[dataKey] + "" + row[dataKey])            
         }
       }//check for which data keys to display    
     })//attribute display loop    
