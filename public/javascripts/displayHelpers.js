@@ -244,7 +244,7 @@ function displayRealtimeData(data,stopSelectorString){
     })
 
   d3.select(stopSelectorString).select(".realtimeDataTimestamp")
-    .text("Last Updated: "+data[0].currentTime)
+    .html("<b>Last Updated: "+data[0].currentTime+"</b>")
 
   /*
   * 
@@ -279,6 +279,7 @@ function displayRealtimeData(data,stopSelectorString){
           if(row[dataKey] == "DELAYED"){
             realtimeContainerDiv
               .append('p')
+                .attr("class","shrink")
                 .html(row[dataKey])  
           }
           else{
@@ -299,6 +300,7 @@ function displayRealtimeData(data,stopSelectorString){
 
             realtimeContainerDiv
               .append('p')
+                .attr("class","shrink")
                 .html(timeEtaString + " " + amPmTag + " ("+row[dataKey]+")")               
           }
 
@@ -307,11 +309,12 @@ function displayRealtimeData(data,stopSelectorString){
         else if(dataKey == "description"){
           realtimeContainerDiv
             .append('p')
-              .html(row[dataKey])           
+              .html(row[dataKey])         
         }
         else{
           realtimeContainerDiv
             .append('p')
+              .attr("class","shrink")
               .html(formattedDataKeys[dataKey] + "" + row[dataKey])            
         }
       }//check for which data keys to display    

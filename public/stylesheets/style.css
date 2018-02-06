@@ -75,37 +75,17 @@ ccc.ccc--converted {
   margin-left:0px;
 }
 
-.icon:after {
-    /* symbol for "opening" panels */
-    font-family: 'FontAwesome';  /* essential for enabling glyphicon */
-    content: "\f068";    /* adjust as needed, taken from bootstrap.css */
-    float: right;        /* adjust as needed */
-    color: grey;         /* adjust as needed */
-}
-
-/*
-*
-* Did some funky margin stuff to get a full-line within the div
-* Realtime Container is extra-wide but then has a negative margin 
-* Container's parent hides X-overflow so the line appears perfect width
-* The value of the negative margin is used in a few places below (vanilla CSS so can't use variables)
-* 
-* CURRENT NEGATIVE MARGIN: 18 (matches padding of parent -- .stopListEntry)
-*
-*/
 .realtimeDataContainer{
   border-top:1px solid black;
   margin-top:7px;
-  -webkit-justify-content: space-between!important;
-  justify-content: space-between!important;
-  cursor: pointer!important;  
-
-
   padding-top:10px;
-
   width: 100%!important;
 
   max-height: 13rem;
+
+  -webkit-justify-content: space-between!important;
+  justify-content: space-between!important;
+  cursor: pointer!important;  
 }
 
 .toggle_collapse{
@@ -119,15 +99,7 @@ ccc.ccc--converted {
   display:inline-block;
 }
 
-
-.realtimeDataHeader{
-  font-weight: bold;
-  font-size:2.5rem;
-  margin-bottom:5px;
-}
-
 .realtimeDataTimestamp{
-  font-weight: bold;
   font-size:2.15rem;
   margin-bottom:5px;
   margin-right:10px;  
@@ -135,13 +107,12 @@ ccc.ccc--converted {
 
 
 .card-text.realtimeData{
-/*  visibility: visible;
-  height: 25%;
-  opacity:1;
-  transition: visibility 500ms,opacity 300ms, height 500ms;*/
   padding-top:12px;
   border-top: 1px solid black;
   margin-bottom:12px;
+  display:flex;
+  flex-direction: row;
+  align-items:center;
 }
 
 div.card-text.realtimeData:nth-child(2){
@@ -149,7 +120,7 @@ div.card-text.realtimeData:nth-child(2){
 }
 
 .realtimeDataContainer p{
-  margin-bottom:2px;
+  margin: 0px 5px 2px 5px;
 
   width: 100%!important;
   -webkit-justify-content: space-between!important;
@@ -159,7 +130,9 @@ div.card-text.realtimeData:nth-child(2){
   display:block;
 }
 
-
+.realtimeDataContainer p.shrink{
+  flex-shrink: 1.5;
+}
   
 .card-title{
   margin-bottom:.25rem;
@@ -173,8 +146,6 @@ div.card-text.realtimeData:nth-child(2){
 .route-number{
   margin:1rem;
   margin-left:0;
-
   padding:.5rem;
-
   font-weight: bold;
 }
