@@ -214,7 +214,6 @@ function displayRealtimeData(data,stopSelectorString){
         var nextOverflow = "hidden"
 
         var nextDataHeight = "0"
-        var nextDataWidth = "0"
       }
       else{
         var nextHeight = SERVICE_STATUS_HEIGHT
@@ -223,7 +222,6 @@ function displayRealtimeData(data,stopSelectorString){
         var nextOverflow = "auto"
       
         var nextDataHeight = SERVICE_STATUS_HEIGHT
-        var nextDataWidth = ""
       }
 
       d3.select(stopSelectorString).select("div.realtimeDataContainer").transition()
@@ -234,9 +232,8 @@ function displayRealtimeData(data,stopSelectorString){
 
       d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData").transition()
         .duration(SERVICE_STATUS_TRANSITION_MS)
-        .ease(d3.easeLinear)
+        .ease(d3.easeCircle)
         .style("opacity",nextOpacity)
-        .style("width",nextDataWidth)
 
       toggleIcon.classed('icon-collapse-top',!toggleIcon.classed('icon-collapse-top'))
       toggleIcon.classed('icon-collapse',!toggleIcon.classed('icon-collapse'))
