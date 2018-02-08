@@ -8,18 +8,18 @@
 <script src="./javascripts/displayHelpers.js" /></script> <!-- Helps with displaying data or display changes -->
 <link rel="stylesheet" href="/stylesheets/style.css">
 <div class='container-fluid' id="page_container">
-  <div class="row no-gutters" id="header_container">
+  <div class="row no-gutters fixed-top" id="header_container">
     <div class="col-6">
-      <div class="card text-center">
-        <div class="card-block">
-          <h1 class="card-title">Bus</h1>
+      <div class="card text-center" id="bus">
+        <div class="card-block" onClick="changeMode('bus')">
+          <h1 class="card-title btn titleBtn">Bus</h1>
         </div>
       </div>
     </div>
     <div class="col-6">
-      <div class="card text-center">
-        <div class="card-block">
-          <h1 class="card-title">Train</h1>
+      <div class="card text-center" id="train">
+        <div class="card-block" onClick="changeMode('train')">
+          <h1 class="card-title btn titleBtn">Train</h1>
         </div>
       </div>
     </div>
@@ -28,6 +28,11 @@
 </div>
 <script>  
   var params = getSearchParameters();
+
+  var mode = getMode()
+
+  //Style button to reflect select transportation mode
+  d3.select("#"+mode).classed("activeMode",true)
 
   if(navigator && navigator.geolocation){
     navigator.geolocation.getCurrentPosition(position => {
@@ -48,7 +53,7 @@
       * Function reverses it when creating URL to get data
       *
       */
-      getBusStopData(start)
+      getBusStopData(start,mode)
 
     })
   }
@@ -60,7 +65,7 @@
     ]
 
     if(params[0] && params[1]){
-      getBusStopData(start)
+      getBusStopData(start,mode)
     }
     else{
       console.log("No location was provided")

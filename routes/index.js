@@ -4,8 +4,12 @@ var router = express.Router();
 var db = require('../queries');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.send('hello world');
+router.get('/bus', function(req, res, next) {
+  res.sendfile('./public/index.html');
+});
+
+router.get('/train', function(req, res, next) {
+  res.sendfile('./public/index.html');
 });
 
 router.get('/map',function(req, res, next) {

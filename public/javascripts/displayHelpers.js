@@ -14,12 +14,13 @@ const DISPLAYED_REALTIME_KEYS = ['description','time','bus']
 
 const DISTANCE_FORMAT = d3.format(".2r")
 
-function displayStopData(busStop,realtime){
+function displayStopData(busStop,realtime,mode){
   //MIN_SCHEDULED_BUSSES check is less OR EQUAL TO because first data element is ALWAYS timestamp
-  if(realtime.length <= MIN_SCHEDULED_BUSSES || d3.selectAll("div.stopListEntry").size() >= MAX_DISPLAYED_STOPS){
+  if((mode != 'train' && realtime.length <= MIN_SCHEDULED_BUSSES) || (d3.selectAll("div.stopListEntry").size() >= MAX_DISPLAYED_STOPS)){
     return;
   }
 
+  //Map stuff
   if(typeof map !== 'undefined'){
     //Creates Icon
     var scoords =[busStop['stop_lat'],busStop['stop_lon']]     

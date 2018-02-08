@@ -6,7 +6,7 @@
 * Function reverses it when creating URL to get data
 *
 */
-function getBusStopData (coords) {
+function getBusStopData (coords, mode) {
   //Closes any open popups
   //Removes old icons
   //Removes list of stops
@@ -21,7 +21,7 @@ function getBusStopData (coords) {
     stopIcons = []
   }
 
-  var url = `bus/stops/${coords[1]}/${coords[0]}`
+  var url = `${ mode }/stops/${coords[1]}/${coords[0]}`
 
   console.log('url', url)
 
@@ -34,8 +34,13 @@ function getBusStopData (coords) {
 
     data['data'].forEach((busStop,i) => {
 
-      //displayStopData will also filter out stops that do not have service
-      getRealtimeData(busStop.stop_code, null, displayStopData.bind(null,busStop))
+      if(mode == 'bus'){
+        //displayStopData will also filter out stops that do not have service
+        getRealtimeData(busStop, null, displayStopData, mode)        
+      }
+      else{
+        displayStopData(busStop, null, mode)      
+      }
 
     });//end data loop
   }).catch(function(error) {
@@ -57,8 +62,8 @@ function getBusStopData (coords) {
 * otherwise, selector string is not used
 *
 */ 
-function getRealtimeData(stop_id,stopSelectorString,cb){
-  var url = `/realtime?routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ stop_id }&allBusses=${ params['allBusses'] }`
+function getRealtimeData(busStop,stopSelectorString,cb,mode){
+  var url = `/realtime?routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ busStop.stop_code }&allBusses=${ params['allBusses'] }`
   if(stopSelectorString){
     console.log(url)    
   }
@@ -66,6 +71,6 @@ function getRealtimeData(stop_id,stopSelectorString,cb){
   fetch(url).then(function(response) {
     return response.json();
   }).then(function(data){
-    return cb(data,stopSelectorString)
+    return cb(busStop,data,mode)
   })//fetch
 }
