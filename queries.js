@@ -119,7 +119,7 @@ function getRealtimeData(req,res,next){
 }
 
 // add query functions
-function getNearbyStops(req, res, next) {
+function getNearbyBusStops(req, res, next) {
   var lng = req.params.lng
   var lat = req.params.lat
 
@@ -148,7 +148,7 @@ function getNearbyStops(req, res, next) {
     LIMIT 
       15;
   `
-console.log(query)
+
   db.any(query)
     .then(function (data) {
       console.log(data)
@@ -164,7 +164,59 @@ console.log(query)
     });
 }
 
+function getNearbyTrainStops(req, res, next){
+
+  var lng = req.params.lng
+  var lat = req.params.lat
+
+  var query = `
+    SELECT 
+      gtfs_train.stops.stop_id,
+      stop_code,
+      stop_name,
+      stop_lat,
+      stop_lon,
+      ST_Distance(gtfs_train.stops.geom::GEOGRAPHY,st_setsrid(st_makepoint(${ lng },${ lat }),4326)::GEOGRAPHY ) as distance,
+      array_agg(DISTINCT route_text_color) as route_text_colors,
+      array_agg(DISTINCT route_color) as route_colors,
+      array_agg(DISTINCT route_stops.route_id) as route_ids,
+      array_agg(DISTINCT route_long_name) as route_names
+    FROM 
+      gtfs_train.stops,
+      gtfs_train.route_stops,
+      gtfs_train.routes
+    WHERE 
+      gtfs_train.stops.stop_id = gtfs_train.route_stops.stop_id AND 
+      gtfs_train.routes.route_id = gtfs_train.route_stops.route_id
+    GROUP BY
+      gtfs_train.stops.stop_id
+    ORDER BY 
+      distance
+    LIMIT 
+      15;
+  `
+
+  db.any(query)
+    .then(function (data) {
+      console.log(data)
+      res.status(200)
+        .json({
+          status: 'success',
+          data: data,
+          message: 'Your Lng/Lat was: '+ lng + ", " + lat
+        });
+    })
+    .catch(function (err) {
+      return next(err);
+    });
+
+
+
+}
+
+
 module.exports = {
-  getNearbyStops: getNearbyStops,
-  getRealtimeData:getRealtimeData
+  getNearbyBusStops: getNearbyBusStops,
+  getRealtimeData:getRealtimeData,
+  getNearbyTrainStops:getNearbyTrainStops
 };

@@ -1,7 +1,6 @@
 node_modules/
 gtfs/
-gtfs.zip
-gtfssherbrooke.zip
+*.zip
 gtfssherbrooke/
 
 db_config.json

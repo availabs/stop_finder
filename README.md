@@ -9,4 +9,4 @@ stop_id is freqently used in interactive features to select elements
 public/index.html is where most of the magic happens, both the HTML and JS
 public/stylesheets/style.css is the CSS
 
-/stops/:lng/:lat is the actual API call to get the 10 closest stops. 
+bus/stops/:lng/:lat is the actual API call to get the 10 closest bus stops. 

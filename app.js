@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 * Make sure lat-lng is in NJ
 *
 */
-app.get('/stops/:lng/:lat', function (req, res, next) {
+app.get('/bus/stops/:lng/:lat', function (req, res, next) {
   console.log('Making sure lng lat  is in NJ:', req.params)
   if(req.params.lng < -75.5 || req.params.lng > -73.5 || req.params.lat > 42 || req.params.lat < 38.5){
     console.log("NOT")

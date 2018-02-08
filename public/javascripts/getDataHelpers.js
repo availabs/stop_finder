@@ -6,7 +6,7 @@
 * Function reverses it when creating URL to get data
 *
 */
-function getStopData (coords) {
+function getBusStopData (coords) {
   //Closes any open popups
   //Removes old icons
   //Removes list of stops
@@ -21,7 +21,7 @@ function getStopData (coords) {
     stopIcons = []
   }
 
-  var url = `/stops/${coords[1]}/${coords[0]}`
+  var url = `bus/stops/${coords[1]}/${coords[0]}`
 
   console.log('url', url)
 
