@@ -36,3 +36,16 @@ function changeMode(mode){
   var newUrl = window.location.href.replace(/bus|train/,mode)
   window.location.href = newUrl
 }
+
+function format_train_stop_name(raw_stop_name){
+  //replaces special characters (. and -)
+  var formatted_stop_name = raw_stop_name.replace(/-|\./g," ").toLowerCase()
+  //replaces ave with avenue
+  formatted_stop_name = formatted_stop_name.replace(" ave"," avenue")
+  //removes "station"
+  formatted_stop_name = formatted_stop_name.replace("station","")
+  //trim whitespace
+  formatted_stop_name = formatted_stop_name.trim()
+
+  return formatted_stop_name;
+}

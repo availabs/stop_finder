@@ -142,10 +142,13 @@ div.card-text.realtimeData:nth-child(2){
   display:block;
 }
 
-.realtimeDataContainer p.shrink{
+.realtimeDataContainer p.shrink.bus{
   flex-shrink: 1.5;
 }
-  
+.realtimeDataContainer p.shrink.train{
+  flex-shrink: 1;
+}
+
 .card-title{
   margin-bottom:.25rem;
   white-space: nowrap;

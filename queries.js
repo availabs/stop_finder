@@ -12,110 +12,163 @@ var db = pgp(cn);
 function getRealtimeData(req,res,next){
   console.log("getRealtimeData req params",req.query)
 
-  var routeId = req.query.routeId != "undefined" ? req.query.routeId : null,
+  var mode = req.query.mode != "undefined" ? req.query.mode : "bus"
+
+
+  if(mode == "bus"){
+    var routeId = req.query.routeId != "undefined" ? req.query.routeId : null,
       direction = req.query.direction != "undefined" ? req.query.direction : null,
       stopId = req.query.stopId != "undefined" ? req.query.stopId : null,
       showAllBusses = req.query.allBusses != "undefined" ? req.query.allBusses : null || "on";
 
-  var url = "http://mybusnow.njtransit.com/bustime/wireless/html/"
+    var url = `http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&findstop=on&selectedRtpiFeeds=&id=${ stopId }`
 
-  var url = `http://mybusnow.njtransit.com/bustime/wireless/html/eta.jsp?route=---&direction=---&displaydirection=---&stop=---&findstop=on&selectedRtpiFeeds=&id=${ stopId }`
+    if(!routeId && !direction && !stopId){
+      var scripts = [    
+        'http://mybusnow.njtransit.com/bustime/javascript/RtpiFeed.js',
+        "http://mybusnow.njtransit.com/bustime/javascript/Utils.js",
+        "http://mybusnow.njtransit.com/bustime/javascript/Trace.js",
+        "http://mybusnow.njtransit.com/bustime/javascript/Route.js"
+      ]
+    }
+    else{
+      var scripts = [
+        
+      ]
+    }
 
-  // if(stopId && direction && routeId){
-  //   url += `eta.jsp?route=${ routeId }&direction=${ direction }&id=${ stopId }&showAllBusses=${ showAllBusses }`
-  // }
-  // else if(direction && routeId){
-  //   url += `selectstop.jsp?route=${ routeId }&direction=${ direction }`
-  // }
-  // else if(routeId){
-  //   url += `selectdirection.jsp?route=${ routeId }`
-  // }
-  // else{
-  //   url += `home.jsp`
-  // }
+    jsdom.env({
+      url: url,
+      features: {
+          FetchExternalResources: ['script'],
+          ProcessExternalResources: ['script']
+      },
+      scripts:scripts,
+      done: function (err, window) {
+        window.addEventListener("error", function (event) {
+          console.error("script error!!", event.error);
+        });
 
-  if(!routeId && !direction && !stopId){
-    var scripts = [    
-      'http://mybusnow.njtransit.com/bustime/javascript/RtpiFeed.js',
-      "http://mybusnow.njtransit.com/bustime/javascript/Utils.js",
-      "http://mybusnow.njtransit.com/bustime/javascript/Trace.js",
-      "http://mybusnow.njtransit.com/bustime/javascript/Route.js"
-    ]
+        var stopArray = []
+
+        //If only a stopId is given, just looking for the 'font' tags
+        //They display the nearby route + bus combinations
+        if(stopId && !direction && !routeId){
+          console.log("only stop ID")
+          var listItems = window.document.body.childNodes
+        }
+        else{
+          var listItems = window.document.getElementsByTagName("ul")[0].children
+        }
+
+        var reachedData = false
+        var curRowIndex = 0
+        var curRowObj = {}
+
+        Object.keys(listItems).forEach((listItemKey,index) => {
+          var curElement = listItems[listItemKey]
+          var curNodeName = curElement.nodeName
+
+          if(index == 5){
+            stopArray.push({currentTime:curElement.textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").trim().split('Currently: ')[1]})
+          }
+
+          if(curNodeName == "HR"){
+            reachedData = true
+            curRowIndex = 0;
+            if(curRowObj["route"]){
+              stopArray.push(curRowObj)
+              curRowObj = {}
+            }
+          }
+
+          if(curNodeName == "FONT" && curRowIndex > 1 || (curNodeName == "#text" && listItems[listItemKey].textContent.replace(/\s+/g,""))){
+            var textContent = listItems[listItemKey].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").trim()
+
+            if(curRowIndex == 3){
+              curRowObj['description'] = textContent
+            }
+            if(curRowIndex == 4){
+              curRowObj['time'] = textContent
+            }
+            if(curRowIndex == 2){
+              curRowObj['route'] = textContent
+            }
+            if(curRowIndex == 6){
+              curRowObj['bus'] = textContent.split('Vehicle ')[1]
+            }
+          }
+
+          curRowIndex++;
+        })
+
+        res.send(stopArray)
+      }
+    });
   }
   else{
-    var scripts = [
-      
-    ]
+    var stopId = req.query.stopId != "undefined" ? req.query.stopId : null;
+
+    if(stopId){
+      var scripts = []
+      var url = `http://dv.njtransit.com/mobile/tid-mobile.aspx?sid=${stopId}`
+
+      jsdom.env({
+        url: url,
+        features: {
+            FetchExternalResources: ['script'],
+            ProcessExternalResources: ['script']
+        },
+        scripts:scripts,
+        done: function (err, window) {
+          window.addEventListener("error", function (event) {
+            console.error("script error!!", event.error);
+          });
+
+
+          var listItems = window.document.getElementsByTagName("tr")
+          //Gets a color for us to use!!!!
+          //TODO: implement that color stuff
+          var color = window.getComputedStyle(listItems[3], null)
+
+          var serviceArray = []
+          //TODO -- this is very ugly, but it gets the last updated time
+          var updatedTime = {currentTime: listItems[0].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").split("Departures ")[1].split("Select")[0].trim()}
+          serviceArray.push(updatedTime)
+          for(var i=2; i<listItems.length; i++){
+
+            var curItems = listItems[i].textContent.split('\n')
+                            .map(singleLine => singleLine.trim())
+                            .filter(singleLine => singleLine != "")
+
+            //No idea why every line is read twice... but mod 2 solves it.                           
+            if(curItems.length == 6 && i%2 == 0){
+              var curService = {
+                dep_time: curItems[0],
+                to: curItems[1],
+                track: curItems[2],
+                line: curItems[3],
+                train_no: curItems[4],
+                status: curItems[5].replace("in ","")
+              }    
+
+              serviceArray.push(curService)      
+            }
+
+          }          
+          res.send(serviceArray)
+
+        }
+      })      
+    }
+    else{
+      res.send("No Stop ID Provided")
+    }
+
+  
   }
 
-  jsdom.env({
-    url: url,
-    features: {
-        FetchExternalResources: ['script'],
-        ProcessExternalResources: ['script']
-    },
-    scripts:scripts,
-    done: function (err, window) {
-      window.addEventListener("error", function (event) {
-        console.error("script error!!", event.error);
-      });
 
-      var stopArray = []
-
-      //If only a stopId is given, just looking for the 'font' tags
-      //They display the nearby route + bus combinations
-      if(stopId && !direction && !routeId){
-        console.log("only stop ID")
-        var listItems = window.document.body.childNodes
-      }
-      else{
-        var listItems = window.document.getElementsByTagName("ul")[0].children
-      }
-
-      var reachedData = false
-      var curRowIndex = 0
-      var curRowObj = {}
-
-      Object.keys(listItems).forEach((listItemKey,index) => {
-        var curElement = listItems[listItemKey]
-        var curNodeName = curElement.nodeName
-
-        if(index == 5){
-          stopArray.push({currentTime:curElement.textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").trim().split('Currently: ')[1]})
-        }
-
-        if(curNodeName == "HR"){
-          reachedData = true
-          curRowIndex = 0;
-          if(curRowObj["route"]){
-            stopArray.push(curRowObj)
-            curRowObj = {}
-          }
-        }
-
-        if(curNodeName == "FONT" && curRowIndex > 1 || (curNodeName == "#text" && listItems[listItemKey].textContent.replace(/\s+/g,""))){
-          var textContent = listItems[listItemKey].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").trim()
-
-          if(curRowIndex == 3){
-            curRowObj['description'] = textContent
-          }
-          if(curRowIndex == 4){
-            curRowObj['time'] = textContent
-          }
-          if(curRowIndex == 2){
-            curRowObj['route'] = textContent
-          }
-          if(curRowIndex == 6){
-            curRowObj['bus'] = textContent.split('Vehicle ')[1]
-          }
-        }
-
-        curRowIndex++;
-      })
-
-      res.send(stopArray)
-    }
-  });
 }
 
 // add query functions
@@ -198,7 +251,6 @@ function getNearbyTrainStops(req, res, next){
 
   db.any(query)
     .then(function (data) {
-      console.log(data)
       res.status(200)
         .json({
           status: 'success',

@@ -6,6 +6,7 @@
 <script src="./javascripts/prettyDataKeys.js" /></script> <!-- Helps with formatting ugly data keys from DB -->
 <script src="./javascripts/getDataHelpers.js" /></script> <!-- Helps with getting data (realtime or static bus stops) -->
 <script src="./javascripts/displayHelpers.js" /></script> <!-- Helps with displaying data or display changes -->
+<script src="./javascripts/train_stop_abbr.js" /></script><!-- JSON of train top names mapped to 2 letter abbreviations -->
 <link rel="stylesheet" href="/stylesheets/style.css">
 <div class='container-fluid' id="page_container">
   <div class="row no-gutters fixed-top" id="header_container">
@@ -53,7 +54,7 @@
       * Function reverses it when creating URL to get data
       *
       */
-      getBusStopData(start,mode)
+      getStopData(start,mode)
 
     })
   }
@@ -65,7 +66,7 @@
     ]
 
     if(params[0] && params[1]){
-      getBusStopData(start,mode)
+      getStopData(start,mode)
     }
     else{
       console.log("No location was provided")

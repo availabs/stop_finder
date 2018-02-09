@@ -6,7 +6,7 @@
 * Function reverses it when creating URL to get data
 *
 */
-function getBusStopData (coords, mode) {
+function getStopData (coords, mode) {
   //Closes any open popups
   //Removes old icons
   //Removes list of stops
@@ -38,8 +38,8 @@ function getBusStopData (coords, mode) {
         //displayStopData will also filter out stops that do not have service
         getRealtimeData(busStop, null, displayStopData, mode)        
       }
-      else{
-        displayStopData(busStop, null, mode)      
+      else{ 
+        getRealtimeData(busStop, null, displayStopData, mode)    
       }
 
     });//end data loop
@@ -67,10 +67,10 @@ function getRealtimeData(busStop,stopSelectorString,cb,mode){
     var stop_code = busStop
   }
   else{
-    var stop_code = busStop.stop_code
+    var stop_code = mode == "bus" ? busStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(busStop.stop_name)]
   }
 
-  var url = `/realtime?routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ stop_code }&allBusses=${ params['allBusses'] }`
+  var url = `/realtime?mode=${ mode }&routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ stop_code }&allBusses=${ params['allBusses'] }`
   if(stopSelectorString){
     console.log(url)    
   }

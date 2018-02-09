@@ -9,8 +9,11 @@ const SERVICE_STATUS_HEIGHT = "15rem"
 
 //Data from API that will be displayed (subset of those actually retreived)
 const DISPLAYED_DATA_KEYS = ['route_ids', 'distance']
-
-const DISPLAYED_REALTIME_KEYS = ['description','time','bus']
+                                  
+const DISPLAYED_REALTIME_KEYS = [
+                                  'description','time','bus', //Bus
+                                  'to','track','train_no','status' //Train
+                                ]
 
 const DISTANCE_FORMAT = d3.format(".2r")
 
@@ -79,9 +82,11 @@ function displayStopData(busStop,realtime,mode){
         var clickedStop = stopIcons.filter(stop => stop['options']['stop_id'] == busStop.stop_id)[0]
         clickedStop.openPopup()              
       }
-
     backgroundColorToggle(busStop.stop_id,stopSelectorString)
-    getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
+
+    //Bus and train requires different keys to get realtime data
+    var stopKey = mode == "bus" ? busStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(busStop.stop_name)]
+    getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
   }) 
 
   //Gets realtime data
@@ -92,7 +97,10 @@ function displayStopData(busStop,realtime,mode){
     .on('click',() => {
       if(!d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")['_groups'].length){
         backgroundColorToggle(busStop.stop_id,stopSelectorString)
-        getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
+
+        //Bus and train requires different keys to get realtime data
+        var stopKey = mode == "bus" ? busStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(busStop.stop_name)]
+        getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
       }
 
       toggleIcon
@@ -113,8 +121,12 @@ function displayStopData(busStop,realtime,mode){
             .duration(REFRESH_TRANSITION_MS)
             .ease(d3.easeLinear)
             .style("transform",nextTransform)
+
           backgroundColorToggle(busStop.stop_id,stopSelectorString)
-          getRealtimeData(busStop.stop_code, stopSelectorString, displayRealtimeData)
+
+          //Bus and train requires different keys to get realtime data
+          var stopKey = mode == "bus" ? busStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(busStop.stop_name)]
+          getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
         })
 
       d3.event.stopPropagation()
@@ -194,6 +206,7 @@ function displayStopData(busStop,realtime,mode){
 
 function displayRealtimeData(busStop,data,mode,stopSelectorString){
   //Remove old real-time data
+  console.log(stopSelectorString)
   d3.select(stopSelectorString).select("div.realtimeDataContainer").remove()
 
   var realtimeContainerDiv = d3.select(stopSelectorString)
@@ -244,40 +257,40 @@ function displayRealtimeData(busStop,data,mode,stopSelectorString){
   d3.select(stopSelectorString).select(".realtimeDataTimestamp")
     .html("<b>Last Updated: "+data[0].currentTime+"</b>")
 
-  /*
-  * 
-  * Parses last-updated time to use when displaying ETA
-  *
-  */
-  var updatedTime = data[0].currentTime.split(" ")[0]
-  var amPmTag = data[0].currentTime.split(" ")[1]
-  if(amPmTag == "PM"){
-    updatedTime = (+updatedTime.split(":")[0] + 12) +":"+ updatedTime.split(":")[1]
-  }
-
-
   var toggleIcon = toggleCollapseDiv.append('i')
     .attr('class','icon-collapse-top toggleCollapseIcon')
+
+  if(mode == "bus"){
+    //Parses last-updated time to use when displaying ETA
+    var updatedTime = data[0].currentTime.split(" ")[0]
+    var amPmTag = data[0].currentTime.split(" ")[1]
+    if(amPmTag == "PM"){
+      updatedTime = (+updatedTime.split(":")[0] + 12) +":"+ updatedTime.split(":")[1]
+    }    
+  }
+
 
   //1st element is always the timestamp, which we already used
   data = data.slice(1)
 
   data.forEach((row,index) => {
+    var rowKey = mode == "bus" ? row['bus'] : row['train_no']
+    console.log(rowKey, row)
     var realtimeContainerDiv = d3.select(stopSelectorString).select("div.realtimeDataContainer")
       .append('div')
-      .attr('class',"card-text realtimeData "+row['bus'])
+      .attr('class',"card-text realtimeData "+rowKey)
       .style('max-height',"1rem")
       .style("opacity","0")
 
     Object.keys(row).forEach(dataKey => {
       if(DISPLAYED_REALTIME_KEYS.includes(dataKey)){
-        if(dataKey == "time"){
+        if(dataKey == "time" && mode == "bus"){
           var parseHour = d3.timeParse("%I:%M")
 
           if(row[dataKey] == "DELAYED"){
             realtimeContainerDiv
               .append('p')
-                .attr("class","shrink")
+                .attr("class","shrink" + " " + mode)
                 .html(row[dataKey])  
           }
           else{
@@ -298,21 +311,28 @@ function displayRealtimeData(busStop,data,mode,stopSelectorString){
 
             realtimeContainerDiv
               .append('p')
-                .attr("class","shrink")
+                .attr("class","shrink" + " " + mode)
                 .html(timeEtaString + " " + amPmTag + " ("+row[dataKey]+")")               
           }
 
 
         }
-        else if(dataKey == "description"){
+        else if(dataKey == "description" || dataKey == "to"){
           realtimeContainerDiv
             .append('p')
-              .html(row[dataKey])         
+              .attr("class","" + " " + mode)
+              .html(row[dataKey])        
+        }
+        else if(dataKey == "status"){
+          realtimeContainerDiv
+            .append('p')
+              .attr("class","" + " " + mode)
+              .html(row['dep_time'] + " ("+row['status']+")" )            
         }
         else{
           realtimeContainerDiv
             .append('p')
-              .attr("class","shrink")
+              .attr("class","" + " " + mode)
               .html(formattedDataKeys[dataKey] + "" + row[dataKey])            
         }
       }//check for which data keys to display    
