@@ -192,7 +192,7 @@ function displayStopData(busStop,realtime,mode){
   })//end iterating over stop properties
 }//displayStopData
 
-function displayRealtimeData(data,stopSelectorString){
+function displayRealtimeData(busStop,data,mode,stopSelectorString){
   //Remove old real-time data
   d3.select(stopSelectorString).select("div.realtimeDataContainer").remove()
 

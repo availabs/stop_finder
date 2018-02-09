@@ -63,14 +63,24 @@ function getBusStopData (coords, mode) {
 *
 */ 
 function getRealtimeData(busStop,stopSelectorString,cb,mode){
-  var url = `/realtime?routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ busStop.stop_code }&allBusses=${ params['allBusses'] }`
+  if(typeof busStop == "string"){
+    var stop_code = busStop
+  }
+  else{
+    var stop_code = busStop.stop_code
+  }
+
+  var url = `/realtime?routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ stop_code }&allBusses=${ params['allBusses'] }`
   if(stopSelectorString){
     console.log(url)    
   }
 
+// displayStopData(busStop,realtime,mode, stopSelectorString = null)
+// displayRealtimeData(busStop,data,mode = null, stopSelectorString)
+
   fetch(url).then(function(response) {
     return response.json();
   }).then(function(data){
-    return cb(busStop,data,mode)
+    return cb(busStop,data,mode, stopSelectorString)
   })//fetch
 }
