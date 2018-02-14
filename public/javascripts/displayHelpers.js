@@ -1,5 +1,5 @@
 const MAX_DISPLAYED_STOPS = 10 
-const MIN_SCHEDULED_BUSSES = 1
+const MIN_SCHEDULED_SERVICES = 1
 const DATA_TIMEOUT_MINUTES = 5
 const DATA_TIMEOUT_MS = 60 * 1000 * DATA_TIMEOUT_MINUTES
 
@@ -17,28 +17,27 @@ const DISPLAYED_REALTIME_KEYS = [
 
 const DISTANCE_FORMAT = d3.format(".2r")
 
-function displayStopData(busStop,realtime,mode){
-  //MIN_SCHEDULED_BUSSES check is less OR EQUAL TO because first data element is ALWAYS timestamp
-  if((mode != 'train' && realtime.length <= MIN_SCHEDULED_BUSSES) || (d3.selectAll("div.stopListEntry").size() >= MAX_DISPLAYED_STOPS)){
+function displayStopData(transitStop,realtime,mode){
+  //MIN_SCHEDULED_SERVICES check is less OR EQUAL TO because first data element is ALWAYS timestamp
+  if((realtime.length <= MIN_SCHEDULED_SERVICES) || (d3.selectAll("div.stopListEntry").size() >= MAX_DISPLAYED_STOPS)){
     return;
   }
-
   //Map stuff
   if(typeof map !== 'undefined'){
     //Creates Icon
-    var scoords =[busStop['stop_lat'],busStop['stop_lon']]     
+    var scoords =[transitStop['stop_lat'],transitStop['stop_lon']]     
     var sIcon = L.divIcon({ 
-      className:'stopIcon ' + busStop.stop_id
+      className:'stopIcon ' + transitStop.stop_id
     });
-    var sMarker = L.marker([scoords[0], scoords[1]], {icon: sIcon,stop_id:busStop.stop_id})
+    var sMarker = L.marker([scoords[0], scoords[1]], {icon: sIcon,stop_id:transitStop.stop_id})
 
     //Creates Popup
-    var popupContent = `${busStop.stop_name}`
+    var popupContent = `${transitStop.stop_name}`
     sMarker.bindPopup(popupContent)
 
     //Onclick function for markers
     sMarker.on('click', e => {
-      backgroundColorToggle(busStop.stop_id)
+      backgroundColorToggle(transitStop.stop_id)
     })
 
     //Add marker to array of markers and map
@@ -55,10 +54,10 @@ function displayStopData(busStop,realtime,mode){
   }
   //If the DB has no colors
   //Use premade colors
-  else if(busStop['route_text_colors'].length > 1 && busStop['route_text_colors'][0] != null){
+  else if(transitStop['route_text_colors'].length > 1 && transitStop['route_text_colors'][0] != null){
     //TODO -- implement colors from DB if they exists 
   }
-  else if(busStop['route_colors'].length > 1 && busStop['route_colors'][0] != null){
+  else if(transitStop['route_colors'].length > 1 && transitStop['route_colors'][0] != null){
     //TODO -- implement colors from DB if they exists 
   }
   else{
@@ -68,7 +67,7 @@ function displayStopData(busStop,realtime,mode){
   //Add stop to the list of stops
   var parentDiv = d3.select('#stops')
     .append('div')
-    .attr('class',"card stopListEntry stop_"+busStop.stop_id)
+    .attr('class',"card stopListEntry stop_"+transitStop.stop_id)
       .append('div')
       .attr('class',"card-block")
 
@@ -79,21 +78,21 @@ function displayStopData(busStop,realtime,mode){
                     .attr("class","card-title")
                     .style("font-weight", "bold")
 
-  var stopSelectorString  = "div.stop_"+busStop.stop_id
+  var stopSelectorString  = "div.stop_"+transitStop.stop_id
   //Stop Name
   stopHeader
     .append('div')
     .attr("class","stopName")
-    .text(busStop.stop_name)
+    .text(transitStop.stop_name)
     .on('click',() => {
       if(typeof map !== 'undefined'){
-        var clickedStop = stopIcons.filter(stop => stop['options']['stop_id'] == busStop.stop_id)[0]
+        var clickedStop = stopIcons.filter(stop => stop['options']['stop_id'] == transitStop.stop_id)[0]
         clickedStop.openPopup()              
       }
-    backgroundColorToggle(busStop.stop_id,stopSelectorString)
+    backgroundColorToggle(transitStop.stop_id,stopSelectorString)
 
     //Bus and train requires different keys to get realtime data
-    var stopKey = mode == "bus" ? busStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(busStop.stop_name)]
+    var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
     getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
   }) 
 
@@ -104,10 +103,10 @@ function displayStopData(busStop,realtime,mode){
     .attr("class","toggle_collapse")
     .on('click',() => {
       if(!d3.select(stopSelectorString).select("div.realtimeDataContainer").selectAll(".realtimeData")['_groups'].length){
-        backgroundColorToggle(busStop.stop_id,stopSelectorString)
+        backgroundColorToggle(transitStop.stop_id,stopSelectorString)
 
         //Bus and train requires different keys to get realtime data
-        var stopKey = mode == "bus" ? busStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(busStop.stop_name)]
+        var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
         getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
       }
 
@@ -130,10 +129,10 @@ function displayStopData(busStop,realtime,mode){
             .ease(d3.easeLinear)
             .style("transform",nextTransform)
 
-          backgroundColorToggle(busStop.stop_id,stopSelectorString)
+          backgroundColorToggle(transitStop.stop_id,stopSelectorString)
 
           //Bus and train requires different keys to get realtime data
-          var stopKey = mode == "bus" ? busStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(busStop.stop_name)]
+          var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
           getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
         })
 
@@ -153,7 +152,7 @@ function displayStopData(busStop,realtime,mode){
     .attr('class','icon-collapse toggleCollapseIcon')
 
   //Add desired data to list
-  Object.keys(busStop).forEach(dataKey => {
+  Object.keys(transitStop).forEach(dataKey => {
     if(DISPLAYED_DATA_KEYS.includes(dataKey)){
       //Special stuff for route Ids, since we are adding colors and have to iterate over the data
       if(dataKey == "route_ids"){
@@ -172,8 +171,9 @@ function displayStopData(busStop,realtime,mode){
             return (parseInt(bgColor.replace('#', ''), 16) > 0xffffff / 2) ? '#000' : '#fff';
         }
 
-        busStop[dataKey].forEach(routeId => {
+        transitStop[dataKey].forEach(routeId => {
           if(mode == "bus" || !routeBgColor){
+            console.log("fake color",transitStop)
             routeBgColor = colorScale(routeId)
           }
 
@@ -188,7 +188,7 @@ function displayStopData(busStop,realtime,mode){
       }
       else if(dataKey == "distance"){
         //Converts from meters (from DB) to miles
-        var displayedDistance = busStop[dataKey] / 1609
+        var displayedDistance = transitStop[dataKey] / 1609
         var unit = " mi"
 
         //If somehow they are 100 miles away from a stop, this deal with rounding/number formatting issues
@@ -210,13 +210,13 @@ function displayStopData(busStop,realtime,mode){
         parentDiv
           .append('div')
             .attr("class","card-block stopListData")
-            .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ busStop[dataKey])           
+            .html("<b>"+formattedDataKeys[dataKey] + ": </b>"+ transitStop[dataKey])           
       }
     }
   })//end iterating over stop properties
 }//displayStopData
 
-function displayRealtimeData(busStop,data,mode,stopSelectorString){
+function displayRealtimeData(transitStop,data,mode,stopSelectorString){
   //Remove old real-time data
   console.log(stopSelectorString)
   d3.select(stopSelectorString).select("div.realtimeDataContainer").remove()
@@ -287,7 +287,6 @@ function displayRealtimeData(busStop,data,mode,stopSelectorString){
 
   data.forEach((row,index) => {
     var rowKey = mode == "bus" ? row['bus'] : row['train_no']
-    console.log(rowKey, row)
     var realtimeContainerDiv = d3.select(stopSelectorString).select("div.realtimeDataContainer")
       .append('div')
       .attr('class',"card-text realtimeData "+rowKey)

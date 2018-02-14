@@ -246,7 +246,7 @@ function getNearbyTrainStops(req, res, next){
     ORDER BY 
       distance
     LIMIT 
-      15;
+      12;
   `
 
   db.any(query)
