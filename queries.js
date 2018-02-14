@@ -10,7 +10,7 @@ var pgp = require('pg-promise')(options);
 var db = pgp(cn);
 
 function getRealtimeData(req,res,next){
-  console.log("getRealtimeData req params",req.query)
+  //console.log("getRealtimeData req params",req.query)
 
   var mode = req.query.mode != "undefined" ? req.query.mode : "bus"
 
@@ -127,23 +127,23 @@ function getRealtimeData(req,res,next){
 
 
           var listItems = window.document.getElementsByTagName("tr")
-          //Gets a color for us to use!!!!
-          //TODO: implement that color stuff
-          var color = window.getComputedStyle(listItems[3], null)
 
           var serviceArray = []
           //TODO -- this is very ugly, but it gets the last updated time
           var updatedTime = {currentTime: listItems[0].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").split("Departures ")[1].split("Select")[0].trim()}
           serviceArray.push(updatedTime)
+          var color;
           for(var i=2; i<listItems.length; i++){
-
             var curItems = listItems[i].textContent.split('\n')
                             .map(singleLine => singleLine.trim())
                             .filter(singleLine => singleLine != "")
 
             //No idea why every line is read twice... but mod 2 solves it.                           
-            if(curItems.length == 6 && i%2 == 0){
+            if(curItems.length == 6 && i%2 == 1){
+              //TODO: some stops dont get colors... namely -- ones with routeIds 10 AND 11
+              color = window.getComputedStyle(listItems[i], null)['background-color']
               var curService = {
+                color:color,
                 dep_time: curItems[0],
                 to: curItems[1],
                 track: curItems[2],

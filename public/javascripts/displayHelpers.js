@@ -46,16 +46,24 @@ function displayStopData(busStop,realtime,mode){
     sMarker.addTo(map)
   }
 
-  //If GTFS data does not include colors, we gotta make our own
-  if(
-    (busStop['route_text_colors'].length == 1 && busStop['route_text_colors'][0] == null) &&
-    (busStop['route_colors'].length == 1 && busStop['route_colors'][0] == null)
-    ){
+  //If GTFS data AND the realtime data does not include colors, we gotta make our own
 
-    //BASIC COLOR SCALE
+  //If there is no realtime data OR the realtime data has no color
+  //Use premade colors
+  if(realtime && realtime.length > 1 && realtime[1].color){
+    var routeBgColor = realtime[1].color
+  }
+  //If the DB has no colors
+  //Use premade colors
+  else if(busStop['route_text_colors'].length > 1 && busStop['route_text_colors'][0] != null){
+    //TODO -- implement colors from DB if they exists 
+  }
+  else if(busStop['route_colors'].length > 1 && busStop['route_colors'][0] != null){
+    //TODO -- implement colors from DB if they exists 
+  }
+  else{
     var colorScale = d3.scaleSequential(d3.interpolateRdYlGn).domain([1,1000]);
   }
-
 
   //Add stop to the list of stops
   var parentDiv = d3.select('#stops')
@@ -165,11 +173,15 @@ function displayStopData(busStop,realtime,mode){
         }
 
         busStop[dataKey].forEach(routeId => {
+          if(mode == "bus" || !routeBgColor){
+            routeBgColor = colorScale(routeId)
+          }
+
           dataDiv
             .append('span')
             .attr("class", "route-number")
-            .style("background-color",colorScale(routeId) )
-            .style("color",getColorByBgColor(colorScale(routeId)))
+            .style("background-color",routeBgColor )
+            .style("color",getColorByBgColor(routeBgColor))
             .text(routeId)
 
         })
