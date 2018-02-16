@@ -28,8 +28,13 @@
   <div id="stops"></div>
 </div>
 <script>  
+  //Get lat/lng from URL, if it is provided
   var params = getSearchParameters();
 
+  //Fixes url to make sure either bus or train is specified
+  fixUrl()
+
+  //Get transportation mode from URL
   var mode = getMode()
 
   //Style button to reflect select transportation mode

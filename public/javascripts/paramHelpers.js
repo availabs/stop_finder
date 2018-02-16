@@ -13,22 +13,18 @@ function transformToAssocArray( prmstr ) {
   return params;
 }
 
-/*
-*
-* TODO
-* UPDATE URL EVEN IF NO LAT/LNG GIVEN
-* TRY PATHNAME OR SMOETHING
-*
-*/
+function fixUrl(){
+  //Means no mode is specified
+  if(window.location.pathname.length == 1){
+    var newPath = window.location.protocol + "//" + window.location.host + "/bus" + window.location.search
+    history.pushState({}, null,newPath )
+  }  
+}
 
 function getMode(){
   var mode = window.location.pathname.split("/")[1]
 
-  //This will only modify the URL if thre is no bus or train specified
-  var newUrl = window.location.href.replace('/?lng',"/bus?lng")
-
-  history.pushState({}, null,newUrl )
-
+  //Default to bus
   return mode || 'bus'
 }
 
