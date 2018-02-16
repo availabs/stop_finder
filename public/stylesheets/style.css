@@ -1,5 +1,5 @@
 body {
-  padding:20px;
+  padding:20px!important;
   padding-top: 10px;
   font: 2.5rem "Lucida Grande", Helvetica, Arial, sans-serif;
 }
@@ -134,7 +134,7 @@ div.card-text.realtimeData:nth-child(2){
 }
 
 .realtimeDataContainer p{
-  margin: 0px 5px 2px 5px;
+  margin: 0px 3px 2px 3px;
 
   width: 100%!important;
   -webkit-justify-content: space-between!important;
@@ -167,4 +167,21 @@ p.secondRow{
   margin-left:0;
   padding:.5rem;
   font-weight: bold;
+}
+
+.modal-content{
+  height:95%;
+}
+
+.modal-dialog{
+  max-width:90%;
+}
+
+.modal-title, .close{
+  font-size: 3rem;
+}
+
+.modal-header{
+  display:block;
+  border-bottom: 2px solid #e9ecef;
 }

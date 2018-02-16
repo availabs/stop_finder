@@ -294,6 +294,25 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
 
 
     if(mode == "bus"){
+      realtimeContainerDiv
+        .attr("data-toggle","modal")
+        .attr("data-target","#exampleModal")
+        .on('click', function(){
+          d3.select(".modal-header").selectAll("p").remove();
+          //Modal Purposes
+          d3.select(".modal-header")
+            .append('p')
+              .attr("class", "firstRow")
+              .html(row['description']) 
+
+          d3.select(".modal-header")
+            .append('p')
+              .attr("class", "secondRow")
+              .html(formattedDataKeys['bus'] + "" + row['bus'])           
+        })
+
+
+      //For the dropdown portion, in main section
       var columnOne = realtimeContainerDiv
         .append('div')
           .attr('class','busCol')
@@ -307,6 +326,7 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
         .append('p')
           .attr("class", "secondRow")
           .html(formattedDataKeys['bus'] + "" + row['bus']) 
+
 
 
       var columnTwo = realtimeContainerDiv
