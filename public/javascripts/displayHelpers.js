@@ -218,7 +218,6 @@ function displayStopData(transitStop,realtime,mode){
 
 function displayRealtimeData(transitStop,data,mode,stopSelectorString){
   //Remove old real-time data
-  console.log(stopSelectorString)
   d3.select(stopSelectorString).select("div.realtimeDataContainer").remove()
 
   var realtimeContainerDiv = d3.select(stopSelectorString)
@@ -293,61 +292,85 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
       .style('max-height',"1rem")
       .style("opacity","0")
 
-    Object.keys(row).forEach(dataKey => {
-      if(DISPLAYED_REALTIME_KEYS.includes(dataKey)){
-        if(dataKey == "time" && mode == "bus"){
-          var parseHour = d3.timeParse("%I:%M")
 
-          if(row[dataKey] == "DELAYED"){
-            realtimeContainerDiv
-              .append('p')
-                .attr("class","shrink" + " " + mode)
-                .html(row[dataKey])  
-          }
-          else{
-            //Means that the ETA is listed as "< 1 min"
-            if(row[dataKey].indexOf("<") != -1){
-              var timeEtaString = updatedTime
-            }
-            else{
-              //Otherwise, get the minutes from ETA, add to last updated time
-              var minutesEta = row[dataKey].split("MIN")[0]
+    if(mode == "bus"){
+      var columnOne = realtimeContainerDiv
+        .append('div')
+          .attr('class','busCol')
 
-              var timeEta = d3.timeMinute.offset(parseHour(updatedTime), minutesEta)  
+      columnOne
+        .append('p')
+          .attr("class", "firstRow")
+          .html(row['description']) 
 
-              var etaMinutes = timeEta.getMinutes() < 10 ? "0" + timeEta.getMinutes() : timeEta.getMinutes()          
-              var etaHours = timeEta.getHours() == 0 ? "12" : timeEta.getHours()
-              var timeEtaString = etaHours + ":" + etaMinutes
-            }
-
-            realtimeContainerDiv
-              .append('p')
-                .attr("class","shrink" + " " + mode)
-                .html(timeEtaString + " " + amPmTag + " ("+row[dataKey]+")")               
-          }
+      columnOne
+        .append('p')
+          .attr("class", "secondRow")
+          .html(formattedDataKeys['bus'] + "" + row['bus']) 
 
 
-        }
-        else if(dataKey == "description" || dataKey == "to"){
-          realtimeContainerDiv
-            .append('p')
-              .attr("class","" + " " + mode)
-              .html(row[dataKey])        
-        }
-        else if(dataKey == "status"){
-          realtimeContainerDiv
-            .append('p')
-              .attr("class","" + " " + mode)
-              .html(row['dep_time'] + " ("+row['status']+")" )            
+      var columnTwo = realtimeContainerDiv
+        .append('div')
+          .attr('class','busCol')
+
+      if(row['time'] == "DELAYED"){
+        columnTwo
+          .append('p')
+            .attr("class", "firstRow")
+            .html(row['time'])  
+      }
+      else{
+        //Means that the ETA is listed as "< 1 min"
+        if(row['time'].indexOf("<") != -1){
+          var timeEtaString = updatedTime
         }
         else{
-          realtimeContainerDiv
-            .append('p')
-              .attr("class","" + " " + mode)
-              .html(formattedDataKeys[dataKey] + "" + row[dataKey])            
+          var parseHour = d3.timeParse("%I:%M")
+          //Otherwise, get the minutes from ETA, add to last updated time
+          var minutesEta = row['time'].split("MIN")[0]
+
+          var timeEta = d3.timeMinute.offset(parseHour(updatedTime), minutesEta)  
+
+          var etaMinutes = timeEta.getMinutes() < 10 ? "0" + timeEta.getMinutes() : timeEta.getMinutes()          
+          var etaHours = timeEta.getHours() == 0 ? "12" : timeEta.getHours()
+          var timeEtaString = etaHours + ":" + etaMinutes                
         }
-      }//check for which data keys to display    
-    })//attribute display loop    
+
+        columnTwo
+          .append('p')
+            .attr("class", "firstRow")
+            .html(timeEtaString + " " + amPmTag)
+
+        columnTwo
+          .append('p')
+            .attr("class", "secondRow")
+            .html(row['time'])
+      }                    
+    }//end of bus mode check
+    else{
+      Object.keys(row).forEach(dataKey => {
+        if(DISPLAYED_REALTIME_KEYS.includes(dataKey)){
+          if(dataKey == "description" || dataKey == "to"){
+            realtimeContainerDiv
+              .append('p')
+                .attr("class","train")
+                .html(row[dataKey])        
+          }
+          else if(dataKey == "status"){
+            realtimeContainerDiv
+              .append('p')
+                .attr("class","train")
+                .html(row['dep_time'] + " ("+row['status']+")" )            
+          }
+          else{
+            realtimeContainerDiv
+              .append('p')
+                .attr("class","train")
+                .html(formattedDataKeys[dataKey] + "" + row[dataKey])            
+          }
+        }//check for which data keys to display    
+      })//attribute display loop      
+    }//end mode train check
   })//all data loop      
 
   //Creates transition effect when getting new data

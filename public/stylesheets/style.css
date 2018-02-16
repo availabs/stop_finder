@@ -124,7 +124,9 @@ ccc.ccc--converted {
   margin-bottom:12px;
   display:flex;
   flex-direction: row;
+  justify-content:space-between;
   align-items:center;
+  margin-right:40px;
 }
 
 div.card-text.realtimeData:nth-child(2){
@@ -142,9 +144,11 @@ div.card-text.realtimeData:nth-child(2){
   display:block;
 }
 
-.realtimeDataContainer p.shrink.bus{
-  flex-shrink: 1.5;
+p.secondRow{
+  font-size: 2rem;
+  color: #636363;
 }
+
 .realtimeDataContainer p.shrink.train{
   flex-shrink: 1;
 }
