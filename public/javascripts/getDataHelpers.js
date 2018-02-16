@@ -41,13 +41,13 @@ function getStopData (coords, mode) {
       const pArray = transitStops.map(async transitStop => {
         var stop_code = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
         var url = `/realtime?mode=${ mode }&routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ stop_code }&allBusses=${ params['allBusses'] }`
-        
+
         const response = await fetch(url);
         return response.json()
-      
       });
 
       const realtimeStops = await Promise.all(pArray);
+
       for(var i=0; i<realtimeStops.length; i++){
         // displayStopData(transitStop,realtime,mode, stopSelectorString = null)
         displayStopData(transitStops[i],realtimeStops[i],mode,null)

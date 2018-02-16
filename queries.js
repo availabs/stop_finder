@@ -125,7 +125,6 @@ function getRealtimeData(req,res,next){
             console.error("script error!!", event.error);
           });
 
-
           var listItems = window.document.getElementsByTagName("tr")
 
           var serviceArray = []
@@ -153,23 +152,17 @@ function getRealtimeData(req,res,next){
               }    
 
               serviceArray.push(curService)      
-            }
-
-          }          
+            }//End of mod 2 conditional that pushes data to result array
+          }//End of for loop that iterates over table rows
           res.send(serviceArray)
-
-        }
-      })      
-    }
+        }//End of callback for jsdom
+      })//Closes jsdom call
+    }//end of stopid conditional
     else{
       res.send("No Stop ID Provided")
     }
-
-  
   }
-
-
-}
+}//end of getRealtimeData
 
 // add query functions
 function getNearbyBusStops(req, res, next) {
@@ -204,7 +197,7 @@ function getNearbyBusStops(req, res, next) {
 
   db.any(query)
     .then(function (data) {
-      console.log(data)
+
       res.status(200)
         .json({
           status: 'success',

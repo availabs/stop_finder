@@ -40,6 +40,10 @@ function format_train_stop_name(raw_stop_name){
   formatted_stop_name = formatted_stop_name.replace(" ave"," avenue")
   //removes "station"
   formatted_stop_name = formatted_stop_name.replace("station","")
+  //Changes 'ny' to 'new york'
+  formatted_stop_name = formatted_stop_name.replace("ny","new york")
+  //Changes 'nj' to new york
+  formatted_stop_name = formatted_stop_name.replace("nj","new jersey")
   //trim whitespace
   formatted_stop_name = formatted_stop_name.trim()
 
