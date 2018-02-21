@@ -30,4 +30,6 @@ router.get('/train/stops/:lng/:lat',db.getNearbyTrainStops);
 
 router.all('/realtime',db.getRealtimeData);
 
+router.all('/realtime/bus/position', db.getBusPosition);
+
 module.exports = router;

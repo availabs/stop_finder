@@ -49,6 +49,7 @@ function getRealtimeData(req,res,next){
           console.error("script error!!", event.error);
         });
 
+        console.log(url)
         var stopArray = []
 
         //If only a stopId is given, just looking for the 'font' tags
@@ -164,6 +165,61 @@ function getRealtimeData(req,res,next){
   }
 }//end of getRealtimeData
 
+function getBusPosition(req,res,next){
+
+  var routeId = req.query.route,
+      busId = req.query.bus
+
+      var scripts = []
+
+  var url = `http://mybusnow.njtransit.com/bustime/map/getBusesForRoute.jsp?route=${ routeId }`
+  console.log("RYAN", url)
+
+
+      jsdom.env({
+        url: url,
+        features: {
+            FetchExternalResources: ['script'],
+            ProcessExternalResources: ['script']
+        },
+        scripts:scripts,
+        done: function (err, window) {
+          window.addEventListener("error", function (event) {
+            console.error("script error!!", event.error);
+          });
+
+          var allStops = window.document.children
+
+          for(var i=0;i<allStops.length;i++){
+
+            for(var j=0;j<allStops[i].children.length;j++){
+              let grandChild = allStops[i].children[j].innerHTML
+              let grandChildId = grandChild.substring(grandChild.lastIndexOf("<id>")+4,grandChild.lastIndexOf("</id>"))
+
+              if(grandChildId == busId){
+                console.log("HOORAY",grandChildId, grandChild)
+                var lat = grandChild.substring(grandChild.lastIndexOf("<lat>")+5,grandChild.lastIndexOf("</lat>"))
+                var lon = grandChild.substring(grandChild.lastIndexOf("<lon>")+5,grandChild.lastIndexOf("</lon>"))
+                console.log(lat, lon)
+              }
+              else{
+                console.log("YOU ARE NOT THE BUS",grandChildId)
+              }
+
+              console.log(" ")
+              console.log(" ")
+            }
+          }
+          console.log("all stops done")
+          var busLatLon = {lat:lat,lon:lon}
+          res.send(busLatLon)
+        }
+      })
+
+}
+
+
+
 // add query functions
 function getNearbyBusStops(req, res, next) {
   var lng = req.params.lng
@@ -264,5 +320,6 @@ function getNearbyTrainStops(req, res, next){
 module.exports = {
   getNearbyBusStops: getNearbyBusStops,
   getRealtimeData:getRealtimeData,
-  getNearbyTrainStops:getNearbyTrainStops
+  getNearbyTrainStops:getNearbyTrainStops,
+  getBusPosition:getBusPosition
 };

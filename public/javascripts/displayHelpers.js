@@ -309,8 +309,31 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
             .append('p')
               .attr("class", "secondRow")
               .html(formattedDataKeys['bus'] + "" + row['bus'])           
-        })
+        
 
+          d3.select(".modal-body")
+            .append('button')
+              .attr('class','btn btn-primary')
+              .text("This is a button")
+              .on('click', function(){
+                /*
+                * TODO -- likely need to access a different array element, if there is more than 1 
+                * scheduled stop
+                */
+                  var url = `/realtime/bus/position?bus=${ data[0].bus }&route=${ data[0].route  }`
+                  console.log("test ry log", data,url)
+                  console.log(data[0].bus,data[0].route)
+                  fetch(url).then(function(response) {
+                    if(response.ok){
+                      return response.json();
+                    }
+                    throw new Error(response.statusText);
+                  }).then(function(data) {
+                    console.log(data)
+                  })
+              })
+
+        })
 
       //For the dropdown portion, in main section
       var columnOne = realtimeContainerDiv
