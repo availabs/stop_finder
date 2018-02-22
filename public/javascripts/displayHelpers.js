@@ -22,29 +22,6 @@ function displayStopData(transitStop,realtime,mode){
   if((realtime.length <= MIN_SCHEDULED_SERVICES) || (d3.selectAll("div.stopListEntry").size() >= MAX_DISPLAYED_STOPS)){
     return;
   }
-  //Map stuff
-  if(typeof map !== 'undefined'){
-    //Creates Icon
-    var scoords =[transitStop['stop_lat'],transitStop['stop_lon']]     
-    var sIcon = L.divIcon({ 
-      className:'stopIcon ' + transitStop.stop_id
-    });
-    var sMarker = L.marker([scoords[0], scoords[1]], {icon: sIcon,stop_id:transitStop.stop_id})
-
-    //Creates Popup
-    var popupContent = `${transitStop.stop_name}`
-    sMarker.bindPopup(popupContent)
-
-    //Onclick function for markers
-    sMarker.on('click', e => {
-      backgroundColorToggle(transitStop.stop_id)
-    })
-
-    //Add marker to array of markers and map
-    stopIcons.push(sMarker)
-    sMarker.addTo(map)
-  }
-
   //If GTFS data AND the realtime data does not include colors, we gotta make our own
 
   //If there is no realtime data OR the realtime data has no color
@@ -93,7 +70,7 @@ function displayStopData(transitStop,realtime,mode){
 
     //Bus and train requires different keys to get realtime data
     var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
-    getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
+    getRealtimeData(transitStop, stopSelectorString, displayRealtimeData, mode)
   }) 
 
   //Gets realtime data
@@ -107,7 +84,7 @@ function displayStopData(transitStop,realtime,mode){
 
         //Bus and train requires different keys to get realtime data
         var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
-        getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
+        getRealtimeData(transitStop, stopSelectorString, displayRealtimeData, mode)
       }
 
       toggleIcon
@@ -133,7 +110,7 @@ function displayStopData(transitStop,realtime,mode){
 
           //Bus and train requires different keys to get realtime data
           var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
-          getRealtimeData(stopKey, stopSelectorString, displayRealtimeData, mode)
+          getRealtimeData(transitStop, stopSelectorString, displayRealtimeData, mode)
         })
 
       d3.event.stopPropagation()
@@ -308,32 +285,36 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
           d3.select(".modal-header")
             .append('p')
               .attr("class", "secondRow")
-              .html(formattedDataKeys['bus'] + "" + row['bus'])           
-        
+              .html(formattedDataKeys['bus'] + "" + row['bus'])     
 
-          d3.select(".modal-body")
-            .append('button')
-              .attr('class','btn btn-primary')
-              .text("This is a button")
-              .on('click', function(){
-                /*
-                * TODO -- likely need to access a different array element, if there is more than 1 
-                * scheduled stop
-                */
-                  var url = `/realtime/bus/position?bus=${ data[0].bus }&route=${ data[0].route  }`
-                  console.log("test ry log", data,url)
-                  console.log(data[0].bus,data[0].route)
-                  fetch(url).then(function(response) {
-                    if(response.ok){
-                      return response.json();
-                    }
-                    throw new Error(response.statusText);
-                  }).then(function(data) {
-                    console.log(data)
-                  })
-              })
 
-        })
+          var map = L.map('map')
+          L.tileLayer('https://api.mapbox.com/styles/v1/am3081/cj654cp7l5xfq2rr4ce5iyo1c/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYW0zMDgxIiwiYSI6IkxzS0FpU0UifQ.rYv6mHCcNd7KKMs7yhY3rw', {
+            maxZoom: 18
+          }).addTo(map);
+
+          var stopStart = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
+          var stopMarker = new L.marker(stopStart, {draggable:'false'});
+          map.addLayer(stopMarker);
+          map.setView(stopStart, 15);
+
+          //Default because in updateMap, we update the latlng
+          var busStart = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
+
+          var busIcon = L.divIcon({ 
+            className:'stopIcon',
+            iconSize:[20,20]
+          });
+          var busMarker = L.marker(busStart, {icon: busIcon})
+          map.addLayer(busMarker);
+          
+          updateMap(data,busMarker,map)
+          setInterval(updateMap,30000,data,busMarker,map)
+
+
+
+
+        })// onclick CB
 
       //For the dropdown portion, in main section
       var columnOne = realtimeContainerDiv
@@ -436,4 +417,25 @@ function backgroundColorToggle(stop_id,stopSelectorString){
     .duration(REFRESH_TRANSITION_MS)
     .ease(d3.easeLinear)
     .style("background-color","white")  
+}
+
+//Is async function, uses "Fetch"
+function updateMap(data,busMarker,map){
+  /*
+  * TODO -- likely need to access a different array element, if there is more than 1 
+  * scheduled stop
+  */
+  var url = `/realtime/bus/position?bus=${ data[0].bus }&route=${ data[0].route  }`
+
+  fetch(url).then(function(response) {
+    if(response.ok){
+      return response.json();
+    }
+    throw new Error(response.statusText);
+  }).then(function(posData) {
+      console.log("INTERVAL", posData)
+    var updatedBusPos = new L.LatLng(posData['lat'], posData['lon'])  
+    busMarker.setLatLng(updatedBusPos) 
+    busMarker.update()
+  })//fetch callback  
 }

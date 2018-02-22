@@ -7,20 +7,6 @@
 *
 */
 function getStopData (coords, mode) {
-  //Closes any open popups
-  //Removes old icons
-  //Removes list of stops
-  //var map = map || null
-  if(typeof map !== 'undefined'){
-    map.closePopup()
-    stopIcons.forEach(icon => {
-      map.getPanes().markerPane.removeChild(icon['_icon'])
-
-    })
-    d3.select("#stops").selectAll("div").remove()
-    stopIcons = []
-  }
-
   var url = `${ mode }/stops/${coords[1]}/${coords[0]}`
 
   console.log('url', url)
