@@ -287,12 +287,6 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
               .attr("class", "secondRow")
               .html(formattedDataKeys['bus'] + "" + row['bus'])     
 
-
-          var map = L.map('map')
-          L.tileLayer('https://api.mapbox.com/styles/v1/am3081/cj654cp7l5xfq2rr4ce5iyo1c/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYW0zMDgxIiwiYSI6IkxzS0FpU0UifQ.rYv6mHCcNd7KKMs7yhY3rw', {
-            maxZoom: 18
-          }).addTo(map);
-
           var stopStart = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
           var stopMarker = new L.marker(stopStart, {draggable:'false'});
           map.addLayer(stopMarker);
@@ -307,12 +301,13 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
           });
           var busMarker = L.marker(busStart, {icon: busIcon})
           map.addLayer(busMarker);
-          
+
           updateMap(data,busMarker,map)
-          setInterval(updateMap,30000,data,busMarker,map)
+          var intervalUpdateKey = setInterval(updateMap,3000,data,busMarker,map)
 
-
-
+          $('#exampleModal').on('hide.bs.modal', function () { 
+            resetMap(busMarker,stopMarker,intervalUpdateKey)
+          });  
 
         })// onclick CB
 
@@ -438,4 +433,10 @@ function updateMap(data,busMarker,map){
     busMarker.setLatLng(updatedBusPos) 
     busMarker.update()
   })//fetch callback  
+}
+
+function resetMap(busMarker,stopMarker,intervalUpdateKey){
+  map.getPanes().markerPane.removeChild(busMarker['_icon'])
+  map.getPanes().markerPane.removeChild(stopMarker['_icon'])
+  clearInterval(intervalUpdateKey)
 }

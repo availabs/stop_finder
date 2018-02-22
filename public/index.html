@@ -60,6 +60,19 @@
   //Style button to reflect select transportation mode
   d3.select("#"+mode).classed("activeMode",true)
 
+  var map;
+
+  //Initialize Map here
+  if(mode == "bus"){
+    if(!map){
+      map = L.map('map')
+      L.tileLayer('https://api.mapbox.com/styles/v1/am3081/cj654cp7l5xfq2rr4ce5iyo1c/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYW0zMDgxIiwiYSI6IkxzS0FpU0UifQ.rYv6mHCcNd7KKMs7yhY3rw', {
+        maxZoom: 18
+      }).addTo(map);
+    }
+  }
+
+
   if(navigator && navigator.geolocation){
     navigator.geolocation.getCurrentPosition(position => {
 
