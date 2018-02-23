@@ -62,15 +62,11 @@ function displayStopData(transitStop,realtime,mode){
     .attr("class","stopName")
     .text(transitStop.stop_name)
     .on('click',() => {
-      if(typeof map !== 'undefined'){
-        var clickedStop = stopIcons.filter(stop => stop['options']['stop_id'] == transitStop.stop_id)[0]
-        clickedStop.openPopup()              
-      }
-    backgroundColorToggle(transitStop.stop_id,stopSelectorString)
+      backgroundColorToggle(transitStop.stop_id,stopSelectorString)
 
-    //Bus and train requires different keys to get realtime data
-    var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
-    getRealtimeData(transitStop, stopSelectorString, displayRealtimeData, mode)
+      //Bus and train requires different keys to get realtime data
+      var stopKey = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
+      getRealtimeData(transitStop, stopSelectorString, displayRealtimeData, mode)
   }) 
 
   //Gets realtime data
@@ -252,11 +248,12 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
     //Parses last-updated time to use when displaying ETA
     var updatedTime = data[0].currentTime.split(" ")[0]
     var amPmTag = data[0].currentTime.split(" ")[1]
-    if(amPmTag == "PM"){
+
+    //Converts to military time -- unneeded if at 12pm, otherwise converts 1pm -> 13:00, etc.
+    if(amPmTag == "PM" && updatedTime.split(":")[0] != "12"){
       updatedTime = (+updatedTime.split(":")[0] + 12) +":"+ updatedTime.split(":")[1]
     }    
   }
-
 
   //1st element is always the timestamp, which we already used
   data = data.slice(1)
@@ -271,6 +268,7 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
 
 
     if(mode == "bus"){
+      //Modal Bus Stuff
       realtimeContainerDiv
         .attr("data-toggle","modal")
         .attr("data-target","#exampleModal")
@@ -282,33 +280,36 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
               .attr("class", "firstRow")
               .html(row['description']) 
 
-          d3.select(".modal-header")
+          var secondRow = d3.select(".modal-header")
             .append('p')
               .attr("class", "secondRow")
-              .html(formattedDataKeys['bus'] + "" + row['bus'])     
+              .html(formattedDataKeys['bus'] + "" + row['bus'])                   
 
-          var stopStart = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
-          var stopMarker = new L.marker(stopStart, {draggable:'false'});
-          map.addLayer(stopMarker);
-          map.setView(stopStart, 15);
+          var stationStartPosition = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
+          var stationMarker = new L.marker(stationStartPosition);
+          map.addLayer(stationMarker);
 
           //Default because in updateMap, we update the latlng
-          var busStart = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
+          var busStartPosition = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
 
           var busIcon = L.divIcon({ 
             className:'stopIcon',
             iconSize:[20,20]
           });
-          var busMarker = L.marker(busStart, {icon: busIcon})
+          var busMarker = L.marker(busStartPosition, {icon: busIcon, draggable:false})
           map.addLayer(busMarker);
 
-          updateMap(data,busMarker,map)
-          var intervalUpdateKey = setInterval(updateMap,3000,data,busMarker,map)
+          updateMap(row,busMarker,stationStartPosition)
+
+          var intervalUpdateKey = setInterval(updateMap,30000,row,busMarker,stationStartPosition)
 
           $('#exampleModal').on('hide.bs.modal', function () { 
-            resetMap(busMarker,stopMarker,intervalUpdateKey)
+            resetMap(busMarker,stationMarker,intervalUpdateKey)
           });  
 
+          $("#exampleModal").on("shown.bs.modal", function() {
+              map.invalidateSize(false);
+          });
         })// onclick CB
 
       //For the dropdown portion, in main section
@@ -326,8 +327,6 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
           .attr("class", "secondRow")
           .html(formattedDataKeys['bus'] + "" + row['bus']) 
 
-
-
       var columnTwo = realtimeContainerDiv
         .append('div')
           .attr('class','busCol')
@@ -337,7 +336,7 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
           .append('p')
             .attr("class", "firstRow")
             .html(row['time'])  
-      }
+      }//End of delayed check
       else{
         //Means that the ETA is listed as "< 1 min"
         if(row['time'].indexOf("<") != -1){
@@ -364,7 +363,8 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
           .append('p')
             .attr("class", "secondRow")
             .html(row['time'])
-      }                    
+      }//End of time conditional                    
+    
     }//end of bus mode check
     else{
       Object.keys(row).forEach(dataKey => {
@@ -415,12 +415,12 @@ function backgroundColorToggle(stop_id,stopSelectorString){
 }
 
 //Is async function, uses "Fetch"
-function updateMap(data,busMarker,map){
+function updateMap(data,busMarker,stationStartPosition){
   /*
   * TODO -- likely need to access a different array element, if there is more than 1 
   * scheduled stop
   */
-  var url = `/realtime/bus/position?bus=${ data[0].bus }&route=${ data[0].route  }`
+  var url = `/realtime/bus/position?bus=${ data.bus }&route=${ data.route  }`
 
   fetch(url).then(function(response) {
     if(response.ok){
@@ -428,15 +428,20 @@ function updateMap(data,busMarker,map){
     }
     throw new Error(response.statusText);
   }).then(function(posData) {
-      console.log("INTERVAL", posData)
+    console.log("new bus position data", posData)
     var updatedBusPos = new L.LatLng(posData['lat'], posData['lon'])  
     busMarker.setLatLng(updatedBusPos) 
     busMarker.update()
+
+    var bounds = L.latLngBounds(stationStartPosition, updatedBusPos);
+
+    map.fitBounds(bounds); 
   })//fetch callback  
 }
 
-function resetMap(busMarker,stopMarker,intervalUpdateKey){
-  map.getPanes().markerPane.removeChild(busMarker['_icon'])
-  map.getPanes().markerPane.removeChild(stopMarker['_icon'])
+function resetMap(busMarker,stationMarker,intervalUpdateKey){
+  busMarker.removeFrom(map)
+  stationMarker.removeFrom(map)
+
   clearInterval(intervalUpdateKey)
 }
