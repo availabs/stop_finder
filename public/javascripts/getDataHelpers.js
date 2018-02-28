@@ -11,6 +11,24 @@ function getStopData (coords, mode) {
 
   console.log('url', url)
 
+
+  //Loading Indicator Card, gets removed when data is displayed
+  var loadingIndicator = d3.select("#stops")
+    .append('div')
+    .attr('class','card stopListEntry loading')
+    .attr('id','loading')
+      .append('div')
+      .attr('class','card-block')
+
+  loadingIndicator
+    .append('i')
+    .attr("class","loading-icon icon-spinner icon-spin icon-large")
+
+  loadingIndicator
+    .append('text')
+    .attr('class','loading-text')
+    .text('Loading...')
+
   fetch(url).then(function(response) {
     if(response.ok){
       return response.json();
@@ -38,6 +56,9 @@ function getStopData (coords, mode) {
         // displayStopData(transitStop,realtime,mode, stopSelectorString = null)
         displayStopData(transitStops[i],realtimeStops[i],mode,null)
       }
+
+      //Removes loading Indicator
+      d3.select("#loading").remove()
       return realtimeStops;
     }//end async function
 

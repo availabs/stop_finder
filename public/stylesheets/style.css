@@ -75,6 +75,21 @@ ccc.ccc--converted {
   overflow-x:hidden;
 }
 
+
+/* Loading Margin and size values hardcoded somewhat arbitrarily*/ 
+.loading{
+  text-align: center;
+  height:185px; /*HARDCODED TO BE SAME HEIGHT AS REAL DATA*/
+  font-size:3.5rem;
+}
+.loading-icon{
+  margin-top:35px;
+}
+.loading-text{
+  font-size:3rem;
+  margin-left:1.75rem;
+}
+
 .stopName{
   text-overflow: ellipsis;
   overflow:hidden;
