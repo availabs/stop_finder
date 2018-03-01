@@ -40,6 +40,10 @@ ccc.ccc--converted {
   padding-top:6rem;
 }
 
+#parkingSpots{
+  padding-top:3rem;
+}
+
 .titleBtn{
   font-size: 3rem;
 }
@@ -57,6 +61,14 @@ ccc.ccc--converted {
   background-color: red;
   border-radius: 50%;
 }
+
+.parking-icon {
+  width: 30px!important;
+  height:30px!important;
+  background-color: red;
+  border-radius: 50%;
+}
+
 .stopListEntry{
   border-color: transparent!important;
   background-color: #efefef;
@@ -95,6 +107,19 @@ ccc.ccc--converted {
   overflow:hidden;
   display:inline-block;
   max-width:95%;
+}
+
+.parkingTitle{
+  display:inline-block;
+  max-width:95%;
+  text-overflow: ellipsis;
+  overflow:hidden;
+}
+
+.lotInfo{
+  max-width:75%;
+  white-space: nowrap;
+  float:left;
 }
 
 .stopListData{

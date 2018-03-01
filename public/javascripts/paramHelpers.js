@@ -13,7 +13,8 @@ function transformToAssocArray( prmstr ) {
   return params;
 }
 
-function fixUrl(){
+//Checks to make sure either bus or train is specified, and adds 'bus' if neither is specified
+function fixUrlMode(){
   //Means no mode is specified
   if(window.location.pathname.length == 1){
     var newPath = window.location.protocol + "//" + window.location.host + "/bus" + window.location.search
@@ -21,6 +22,15 @@ function fixUrl(){
   }  
 }
 
+//Sets lat/lng in URL 
+function setUrlLocation(location){
+  console.log("setUrlLocation",window.location)
+  var newUrl = `${window.location.origin}${window.location.pathname}?lng=${location[1]}&lat=${location[0]}`
+  console.log(newUrl)
+    history.pushState({}, null,newUrl )
+}
+
+//Retreives transportation mode from URL
 function getMode(){
   var mode = window.location.pathname.split("/")[1]
 
@@ -28,11 +38,13 @@ function getMode(){
   return mode || 'bus'
 }
 
+//Changes mode, causes page refresh
 function changeMode(mode){
   var newUrl = window.location.href.replace(/bus|train/,mode)
   window.location.href = newUrl
 }
 
+//Some hardcoded fixes to train station names to work with their API
 function format_train_stop_name(raw_stop_name){
   //replaces special characters (. and -)
   var formatted_stop_name = raw_stop_name.replace(/-|\./g," ").toLowerCase()

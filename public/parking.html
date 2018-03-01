@@ -14,65 +14,30 @@
 <script src="./javascripts/train_stop_abbr.js" /></script><!-- JSON of train top names mapped to 2 letter abbreviations -->
 <link rel="stylesheet" href="/stylesheets/style.css">
 <div class='container-fluid' id="page_container">
-  <div class="row no-gutters fixed-top" id="header_container">
-    <div class="col-6">
-      <div class="card text-center" id="bus">
-        <div class="card-block" onClick="changeMode('bus')">
-          <h1 class="card-title btn titleBtn">Bus</h1>
-        </div>
-      </div>
-    </div>
-    <div class="col-6">
-      <div class="card text-center" id="train">
-        <div class="card-block" onClick="changeMode('train')">
-          <h1 class="card-title btn titleBtn">Train</h1>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="stops"></div>
-  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel"></h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" style="height:85%">
-          <div id="map" style="height:100%" class="col-12 leaflet-container leaflet-fade-anim"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div id="map" style="height:1000px" class="col-12 leaflet-container leaflet-fade-anim" tabindex="0"></div>
+  <div id="parkingSpots"></div>
 </div>
-<script>  
+
+
+
+<script>
+  var parkingIcons = []
+ 
   //Get lat/lng from URL, if it is provided
   var params = getSearchParameters();
 
-  //Fixes url to make sure either bus or train is specified
-  fixUrlMode()
-
-  //Get transportation mode from URL
-  var mode = getMode()
-
-  //Style button to reflect select transportation mode
-  d3.select("#"+mode).classed("activeMode",true)
-
   var map;
 
-  //Initialize Map here
-  if(mode == "bus"){
-    if(!map){
-      map = L.map('map')
-      L.tileLayer('https://api.mapbox.com/styles/v1/am3081/cj654cp7l5xfq2rr4ce5iyo1c/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYW0zMDgxIiwiYSI6IkxzS0FpU0UifQ.rYv6mHCcNd7KKMs7yhY3rw', {
-        maxZoom: 18,
-        minZoom:13,
-        tap: false
-      }).addTo(map);
-    }
+  if(!map){
+    map = L.map('map')
+    L.tileLayer('https://api.mapbox.com/styles/v1/am3081/cj654cp7l5xfq2rr4ce5iyo1c/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYW0zMDgxIiwiYSI6IkxzS0FpU0UifQ.rYv6mHCcNd7KKMs7yhY3rw', {
+      maxZoom: 18,
+      minZoom:13,
+      tap: false
+    }).addTo(map);
   }
+
+
 
   if(navigator && navigator.geolocation){
     navigator.geolocation.getCurrentPosition(position => {
@@ -84,16 +49,13 @@
         params.lat || position.coords.latitude,
         params.lng || position.coords.longitude
       ]
+      // var start = [ 
+      //   params.lat || -74.38568115234375,
+      //   params.lng || 40.487692978918865
+      // ]
+      addMarker(start)
 
-      /*
-      *
-      * LEAFLET TAKES COORDS AS: LAT/LNG
-      * POSTGIS TAKES COORDS AS: LNG/LAT
-      * Parameter is LAT/LNG in order to work with Leaflet
-      * Function reverses it when creating URL to get data
-      *
-      */
-      getStopData(start,mode)
+      getParkingSpots(start)
 
     })
   }
@@ -104,10 +66,37 @@
     ]
 
     if(params[0] && params[1]){
-      getStopData(start,mode)
+      addMarker(start)
+
+      getParkingSpots(start)
     }
     else{
       console.log("No location was provided")
     }
   }
+
+  function addMarker(start){
+    var marker = new L.marker(start, {draggable:'true'});
+    parkingIcons.push(marker)
+    marker.on('dragend', function(event){
+      parkingIcons.forEach(singleIcon => {
+        singleIcon.removeFrom(map)
+      })
+
+      d3.select('#parkingSpots').selectAll('div').remove()
+
+      parkingIcons = []
+      var marker = event.target;
+      var position = marker.getLatLng();
+      marker.setLatLng(new L.LatLng(position.lat, position.lng),{draggable:'true'});
+      map.panTo(new L.LatLng(position.lat, position.lng))
+      parkingIcons.push(marker)
+      marker.addTo(map)
+      setUrlLocation([position.lat,position.lng])
+      getParkingSpots([position.lat, position.lng])
+    });
+    marker.addTo(map)
+  }
+
+
 </script>

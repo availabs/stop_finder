@@ -1,5 +1,8 @@
 var promise = require('bluebird');
 var jsdom = require("jsdom/lib/old-api.js");
+const fetch = require('node-fetch');
+
+
 const { JSDOM } = jsdom;
 var options = {
   // Initialization Options
@@ -122,10 +125,6 @@ function getRealtimeData(req,res,next){
         },
         scripts:scripts,
         done: function (err, window) {
-          window.addEventListener("error", function (event) {
-            console.error("script error!!", event.error);
-          });
-
           var listItems = window.document.getElementsByTagName("tr")
 
           var serviceArray = []
@@ -176,46 +175,59 @@ function getBusPosition(req,res,next){
   console.log("RYAN", url)
 
 
-      jsdom.env({
-        url: url,
-        features: {
-            FetchExternalResources: ['script'],
-            ProcessExternalResources: ['script']
-        },
-        scripts:scripts,
-        done: function (err, window) {
-          window.addEventListener("error", function (event) {
-            console.error("script error!!", event.error);
-          });
+  jsdom.env({
+    url: url,
+    features: {
+        FetchExternalResources: ['script'],
+        ProcessExternalResources: ['script']
+    },
+    scripts:scripts,
+    done: function (err, window) {
+      var allStops = window.document.children
 
-          var allStops = window.document.children
+      for(var i=0;i<allStops.length;i++){
 
-          for(var i=0;i<allStops.length;i++){
+        for(var j=0;j<allStops[i].children.length;j++){
+          let grandChild = allStops[i].children[j].innerHTML
+          let grandChildId = grandChild.substring(grandChild.lastIndexOf("<id>")+4,grandChild.lastIndexOf("</id>"))
 
-            for(var j=0;j<allStops[i].children.length;j++){
-              let grandChild = allStops[i].children[j].innerHTML
-              let grandChildId = grandChild.substring(grandChild.lastIndexOf("<id>")+4,grandChild.lastIndexOf("</id>"))
-
-              if(grandChildId == busId){
-                console.log("HOORAY",grandChildId, grandChild)
-                var lat = grandChild.substring(grandChild.lastIndexOf("<lat>")+5,grandChild.lastIndexOf("</lat>"))
-                var lon = grandChild.substring(grandChild.lastIndexOf("<lon>")+5,grandChild.lastIndexOf("</lon>"))
-                console.log(lat, lon)
-              }
-              else{
-                console.log("YOU ARE NOT THE BUS",grandChildId)
-              }
-
-              console.log(" ")
-              console.log(" ")
-            }
+          if(grandChildId == busId){
+            var lat = grandChild.substring(grandChild.lastIndexOf("<lat>")+5,grandChild.lastIndexOf("</lat>"))
+            var lon = grandChild.substring(grandChild.lastIndexOf("<lon>")+5,grandChild.lastIndexOf("</lon>"))
           }
-          console.log("all stops done")
-          var busLatLon = {lat:lat,lon:lon}
-          res.send(busLatLon)
+          else{
+            console.log("YOU ARE NOT THE BUS",grandChildId)
+          }
         }
-      })
+      }
+      var busLatLon = {lat:lat,lng:lon}
+      res.send(busLatLon)
+    }//end of 'done'
+  })
+}
 
+function getNearbyParking(req, res, next){
+  var lat = req.query.lat,
+      lng = req.query.lng
+
+  const DISTANCE_THRESHOLD = 5 //In miles
+  const MAX_NUM_PARKING = 7 // return a max of N places to park
+
+  var start_time = new Date()
+  var end_time = new Date()
+  end_time.setHours(end_time.getHours()+1)
+
+  var startTimeString = start_time.toISOString().substr(0, 19);  
+  var endTimeString = end_time.toISOString().substr(0, 19);
+
+  var url = `https://api.parkwhiz.com/v4/quotes/?q=coordinates:${lat},${lng} distance:${DISTANCE_THRESHOLD}&start_time=${startTimeString}&end_time=${endTimeString}&sort=distance:asc&api_key=62d882d8cfe5680004fa849286b6ce20`
+  console.log(url)
+
+  fetch(url).then(function(response) {
+    return response.json();
+  }).then(function(data) {
+    res.send(data.slice(0,MAX_NUM_PARKING))
+  });//end fetch
 }
 
 
@@ -321,5 +333,6 @@ module.exports = {
   getNearbyBusStops: getNearbyBusStops,
   getRealtimeData:getRealtimeData,
   getNearbyTrainStops:getNearbyTrainStops,
-  getBusPosition:getBusPosition
+  getBusPosition:getBusPosition,
+  getNearbyParking:getNearbyParking
 };

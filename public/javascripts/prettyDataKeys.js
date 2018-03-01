@@ -15,5 +15,6 @@ var formattedDataKeys = {
   'track': "Track ",
   'line': "Line",
   'train_no': "Train #",
-  'status': "Status"
+  'status': "Status",
+  'USD' : "$"
 }

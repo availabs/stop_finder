@@ -400,6 +400,68 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
     .style("opacity","1")
 }//end displayRealtimeData
 
+function displayParkingData(parkingSpot){
+  const pName = parkingSpot._embedded['pw:location'].name
+
+  //Add stop to the list of stops
+  var parentDiv = d3.select('#parkingSpots')
+    .append('div')
+    .attr('class',"card stopListEntry stop_"+parkingSpot.location_id)
+      .append('div')
+      .attr('class',"card-block")
+
+
+  var lotInfo = parentDiv
+                  .append('div')
+                  .attr('class','lotInfo')
+
+
+  //Header/Title that has name of stop and stop #
+  var stopHeader = lotInfo
+                    .append('div')
+                    .attr("class","card-title parkingTitle")
+                    .style("font-weight", "bold")
+                        .text(pName)
+
+  var stopSelectorString  = "div.stop_"+parkingSpot.stop_id
+
+  var stopLocation = parkingSpot._embedded['pw:location']
+
+
+  lotInfo
+    .append('div')
+      .attr("class","card-block stopListData distance")
+      .text(stopLocation['address1'] + " " + stopLocation['city']) 
+    
+
+  var priceDiv = parentDiv
+    .append('div')
+    .attr("class", "pull-right")
+    .attr("class","toggle_collapse")
+
+  priceDiv
+    .append('div')
+      .attr("class","card-block stopListData distance")
+      .text(parkingSpot['distance']['straight_line']['meters'] + " meters")  
+
+  parkingSpot['purchase_options'].forEach(singleOption => {
+    var priceCurrency = Object.keys(singleOption['price'])[0]
+
+
+
+    priceDiv
+      .append('div')
+      .attr("class", "realtimeDataTimestamp")
+      .text(formattedDataKeys[priceCurrency] + singleOption['price'][priceCurrency])
+   
+  })
+          
+      
+
+}
+
+
+
 //Removes all old highlighted stops (in list-div)
 //Highlights the corresponding "stop_id" 
 function backgroundColorToggle(stop_id,stopSelectorString){
@@ -429,13 +491,10 @@ function updateMap(data,busMarker,stationStartPosition){
     throw new Error(response.statusText);
   }).then(function(posData) {
     console.log("new bus position data", posData)
-    var updatedBusPos = new L.LatLng(posData['lat'], posData['lon'])  
+    var updatedBusPos = new L.LatLng(posData['lat'], posData['lng'])  
     busMarker.setLatLng(updatedBusPos) 
     busMarker.update()
 
-    var bounds = L.latLngBounds(stationStartPosition, updatedBusPos);
-
-    map.fitBounds(bounds); 
   })//fetch callback  
 }
 
