@@ -299,9 +299,9 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
           var busMarker = L.marker(busStartPosition, {icon: busIcon, draggable:false})
           map.addLayer(busMarker);
 
-          updateMap(row,busMarker,stationStartPosition)
+          updateMap(row,busMarker,stationMarker)
 
-          var intervalUpdateKey = setInterval(updateMap,30000,row,busMarker,stationStartPosition)
+          var intervalUpdateKey = setInterval(updateMap,30000,row,busMarker,stationMarker)
 
           $('#exampleModal').on('hide.bs.modal', function () { 
             resetMap(busMarker,stationMarker,intervalUpdateKey)
@@ -410,7 +410,6 @@ function displayParkingData(parkingSpot){
       .append('div')
       .attr('class',"card-block")
 
-
   var lotInfo = parentDiv
                   .append('div')
                   .attr('class','lotInfo')
@@ -427,13 +426,11 @@ function displayParkingData(parkingSpot){
 
   var stopLocation = parkingSpot._embedded['pw:location']
 
-
   lotInfo
     .append('div')
       .attr("class","card-block stopListData distance")
       .text(stopLocation['address1'] + " " + stopLocation['city']) 
     
-
   var priceDiv = parentDiv
     .append('div')
     .attr("class", "pull-right")
@@ -444,22 +441,20 @@ function displayParkingData(parkingSpot){
       .attr("class","card-block stopListData distance")
       .text(parkingSpot['distance']['straight_line']['meters'] + " meters")  
 
-  parkingSpot['purchase_options'].forEach(singleOption => {
+  parkingSpot['purchase_options'].forEach((singleOption,index) => {
     var priceCurrency = Object.keys(singleOption['price'])[0]
+    var priceText = formattedDataKeys[priceCurrency] + singleOption['price'][priceCurrency]
 
-
+    if(index != parkingSpot['purchase_options'].length){
+      priceText = priceText + ", "
+    }
 
     priceDiv
       .append('div')
       .attr("class", "realtimeDataTimestamp")
-      .text(formattedDataKeys[priceCurrency] + singleOption['price'][priceCurrency])
-   
+      .text(priceText)
   })
-          
-      
-
 }
-
 
 
 //Removes all old highlighted stops (in list-div)
@@ -477,11 +472,7 @@ function backgroundColorToggle(stop_id,stopSelectorString){
 }
 
 //Is async function, uses "Fetch"
-function updateMap(data,busMarker,stationStartPosition){
-  /*
-  * TODO -- likely need to access a different array element, if there is more than 1 
-  * scheduled stop
-  */
+function updateMap(data,busMarker,stationMarker){
   var url = `/realtime/bus/position?bus=${ data.bus }&route=${ data.route  }`
 
   fetch(url).then(function(response) {
@@ -495,6 +486,9 @@ function updateMap(data,busMarker,stationStartPosition){
     busMarker.setLatLng(updatedBusPos) 
     busMarker.update()
 
+    var group = new L.featureGroup([stationMarker,busMarker]);
+
+    map.fitBounds(group.getBounds(),{padding:[0,0]}); //Going back and forth with adding some padding in
   })//fetch callback  
 }
 

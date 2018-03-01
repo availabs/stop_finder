@@ -18,8 +18,6 @@
   <div id="parkingSpots"></div>
 </div>
 
-
-
 <script>
   var parkingIcons = []
  
@@ -37,8 +35,6 @@
     }).addTo(map);
   }
 
-
-
   if(navigator && navigator.geolocation){
     navigator.geolocation.getCurrentPosition(position => {
 
@@ -49,14 +45,8 @@
         params.lat || position.coords.latitude,
         params.lng || position.coords.longitude
       ]
-      // var start = [ 
-      //   params.lat || -74.38568115234375,
-      //   params.lng || 40.487692978918865
-      // ]
-      addMarker(start)
-
+      addLocationMarker(start)
       getParkingSpots(start)
-
     })
   }
   else{
@@ -66,8 +56,7 @@
     ]
 
     if(params[0] && params[1]){
-      addMarker(start)
-
+      addLocationMarker(start)
       getParkingSpots(start)
     }
     else{
@@ -75,28 +64,29 @@
     }
   }
 
-  function addMarker(start){
+  function addLocationMarker(start){
     var marker = new L.marker(start, {draggable:'true'});
     parkingIcons.push(marker)
     marker.on('dragend', function(event){
       parkingIcons.forEach(singleIcon => {
         singleIcon.removeFrom(map)
       })
+      parkingIcons = []
 
       d3.select('#parkingSpots').selectAll('div').remove()
 
-      parkingIcons = []
       var marker = event.target;
       var position = marker.getLatLng();
+
       marker.setLatLng(new L.LatLng(position.lat, position.lng),{draggable:'true'});
-      map.panTo(new L.LatLng(position.lat, position.lng))
+
       parkingIcons.push(marker)
       marker.addTo(map)
+
       setUrlLocation([position.lat,position.lng])
       getParkingSpots([position.lat, position.lng])
     });
     marker.addTo(map)
   }
-
 
 </script>
