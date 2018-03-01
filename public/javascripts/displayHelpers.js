@@ -402,6 +402,9 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
 
 function displayParkingData(parkingSpot){
   const pName = parkingSpot._embedded['pw:location'].name
+  const stopLocation = parkingSpot._embedded['pw:location']
+  const stopAddress = stopLocation['address1'] + ", " + stopLocation['city'] + " " +  stopLocation['state']
+
 
   //Add stop to the list of stops
   var parentDiv = d3.select('#parkingSpots')
@@ -409,27 +412,28 @@ function displayParkingData(parkingSpot){
     .attr('class',"card stopListEntry stop_"+parkingSpot.location_id)
       .append('div')
       .attr('class',"card-block")
+      .on('click',function(){
+        var desiredIcon = parkingIcons.filter(singleIcon => singleIcon.options.id == parkingSpot.location_id)[0]
+
+        desiredIcon.bindPopup('<p>'+pName+'</p><p>'+stopLocation['address1']+'</p>').openPopup();
+      })
 
   var lotInfo = parentDiv
                   .append('div')
                   .attr('class','lotInfo')
 
-
-  //Header/Title that has name of stop and stop #
   var stopHeader = lotInfo
                     .append('div')
                     .attr("class","card-title parkingTitle")
                     .style("font-weight", "bold")
-                        .text(pName)
+                    .text(pName)
 
   var stopSelectorString  = "div.stop_"+parkingSpot.stop_id
-
-  var stopLocation = parkingSpot._embedded['pw:location']
 
   lotInfo
     .append('div')
       .attr("class","card-block stopListData distance")
-      .text(stopLocation['address1'] + " " + stopLocation['city']) 
+      .text(stopAddress)
     
   var priceDiv = parentDiv
     .append('div')
@@ -445,7 +449,7 @@ function displayParkingData(parkingSpot){
     var priceCurrency = Object.keys(singleOption['price'])[0]
     var priceText = formattedDataKeys[priceCurrency] + singleOption['price'][priceCurrency]
 
-    if(index != parkingSpot['purchase_options'].length){
+    if(index != parkingSpot['purchase_options'].length-1){
       priceText = priceText + ", "
     }
 
@@ -486,8 +490,8 @@ function updateMap(data,busMarker,stationMarker){
     busMarker.setLatLng(updatedBusPos) 
     busMarker.update()
 
+    //https://stackoverflow.com/a/16845714
     var group = new L.featureGroup([stationMarker,busMarker]);
-
     map.fitBounds(group.getBounds(),{padding:[0,0]}); //Going back and forth with adding some padding in
   })//fetch callback  
 }

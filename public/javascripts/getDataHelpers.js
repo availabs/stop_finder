@@ -76,10 +76,6 @@ function getParkingSpots(coords){
 
   var startTimeString = start_time.toISOString().substr(0, 19);  
   var endTimeString = end_time.toISOString().substr(0, 19);
-
-
-  console.log(startTimeString)
-
   var url = `/parking/spots?lat=${coords[0]}&lng=${coords[1]}`
 
   console.log('url', url)
@@ -87,11 +83,9 @@ function getParkingSpots(coords){
   fetch(url).then(function(response) {
     return response.json();
   }).then(function(data) {
-    //console.log(data)
+
     data.map(parkingSpot => {
       displayParkingData(parkingSpot)
-
-      //console.log(parkingSpot._embedded)
 
       var pCoords =  parkingSpot._embedded['pw:location'].entrances[0].coordinates
       var pName = parkingSpot._embedded['pw:location'].name
@@ -99,16 +93,14 @@ function getParkingSpots(coords){
       var pIcon = L.divIcon({ 
         className:'parking-icon'
       });
-      var pmarker = L.marker([pCoords[0], pCoords[1]], {icon: pIcon})
+      var pmarker = L.marker([pCoords[0], pCoords[1]], {icon: pIcon,id:parkingSpot._embedded['pw:location']['id']})
       parkingIcons.push(pmarker)
       pmarker.addTo(map)
     });//end map
 
-    //console.log(parkingIcons)
+    //https://stackoverflow.com/a/16845714
     var group = new L.featureGroup(parkingIcons);
-
     map.fitBounds(group.getBounds(),{padding:[0,0]}); //Going back and forth with adding some padding in
-
   });//end fetch 
 }
 

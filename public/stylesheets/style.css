@@ -122,6 +122,10 @@ ccc.ccc--converted {
   float:left;
 }
 
+.leaflet-popup-content{
+  font-size: 2rem;
+}
+
 .stopListData{
   margin:.5rem;
   margin-left:0px;
