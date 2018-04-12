@@ -401,21 +401,40 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
 }//end displayRealtimeData
 
 function displayParkingData(parkingSpot){
-  const pName = parkingSpot._embedded['pw:location'].name
-  const stopLocation = parkingSpot._embedded['pw:location']
-  const stopAddress = stopLocation['address1'] + ", " + stopLocation['city'] + " " +  stopLocation['state']
+  const pName = parkingSpot.name
+  // const stopLocation = parkingSpot._embedded['pw:location']
+  const stopAddress = parkingSpot.address + ", " + parkingSpot['city']
 
 
   //Add stop to the list of stops
-  var parentDiv = d3.select('#parkingSpots')
+  var cardDiv = d3.select('#parkingSpots')
     .append('div')
-    .attr('class',"card stopListEntry stop_"+parkingSpot.location_id)
-      .append('div')
+    .attr('class',"card stopListEntry stop_"+parkingSpot.id)
+
+  var parentDiv = cardDiv.append('div')
       .attr('class',"card-block")
       .on('click',function(){
-        var desiredIcon = parkingIcons.filter(singleIcon => singleIcon.options.id == parkingSpot.location_id)[0]
+        var desiredIcon = parkingIcons.filter(singleIcon => singleIcon.options.id == parkingSpot.id)[0]
 
-        desiredIcon.bindPopup('<p>'+pName+'</p><p>'+stopLocation['address1']+'</p>').openPopup();
+        desiredIcon.bindPopup('<p>'+pName+'</p><p>'+parkingSpot['address']+'</p>').openPopup();
+
+        d3.select("#amenities-card").remove();
+        let amenitiesCard = cardDiv.append("div").attr("id", "amenities-card").attr("class", "card")
+          .on("click", function(e) {
+            d3.select("#amenities-card").remove();
+          });
+
+
+        let aCardBlock = amenitiesCard.append("div").attr("class", "card-block")
+
+        let picBlock = aCardBlock.append("div").style("max-width", "75%")
+          .style("float", "left").style("display", "inline-block")
+          .append("img").style("max-width", "100%").attr("src", parkingSpot.img);
+
+        let amenities = aCardBlock.append("div").style("float", "right").style("display", "inline-block")
+          .selectAll(".amenity")
+          .data(parkingSpot.amenities)
+          .enter().append("div").text(t => t);
       })
 
   var lotInfo = parentDiv
@@ -428,7 +447,7 @@ function displayParkingData(parkingSpot){
                     .style("font-weight", "bold")
                     .text(pName)
 
-  var stopSelectorString  = "div.stop_"+parkingSpot.stop_id
+  var stopSelectorString  = "div.stop_"+parkingSpot.id
 
   lotInfo
     .append('div')
@@ -443,21 +462,12 @@ function displayParkingData(parkingSpot){
   priceDiv
     .append('div')
       .attr("class","card-block stopListData distance")
-      .text(parkingSpot['distance']['straight_line']['meters'] + " meters")  
-
-  parkingSpot['purchase_options'].forEach((singleOption,index) => {
-    var priceCurrency = Object.keys(singleOption['price'])[0]
-    var priceText = formattedDataKeys[priceCurrency] + singleOption['price'][priceCurrency]
-
-    if(index != parkingSpot['purchase_options'].length-1){
-      priceText = priceText + ", "
-    }
+      .text(parkingSpot['distance'] + " meters")  
 
     priceDiv
       .append('div')
       .attr("class", "realtimeDataTimestamp")
-      .text(priceText)
-  })
+      .text("Cost: $" + parkingSpot.cost)
 }
 
 

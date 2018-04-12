@@ -85,15 +85,16 @@ function getParkingSpots(coords){
   }).then(function(data) {
 
     data.map(parkingSpot => {
+console.log("parkingSpot:",parkingSpot);
       displayParkingData(parkingSpot)
 
-      var pCoords =  parkingSpot._embedded['pw:location'].entrances[0].coordinates
-      var pName = parkingSpot._embedded['pw:location'].name
+      var pCoords =  parkingSpot.coordinates
+      var pName = parkingSpot.name
 
       var pIcon = L.divIcon({ 
         className:'parking-icon'
       });
-      var pmarker = L.marker([pCoords[0], pCoords[1]], {icon: pIcon,id:parkingSpot._embedded['pw:location']['id']})
+      var pmarker = L.marker([pCoords.lat, pCoords.lon], {icon: pIcon,id:parkingSpot.id})
       parkingIcons.push(pmarker)
       pmarker.addTo(map)
     });//end map

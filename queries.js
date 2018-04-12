@@ -206,10 +206,164 @@ function getBusPosition(req,res,next){
   })
 }
 
+function getPwCoordinates(data) {
+  const loc = data._embedded["pw:location"].entrances[0].coordinates
+  return {
+    lat: loc[0],
+    lon: loc[1]
+  }
+}
+function getPwDistance(data) {
+  return data.distance.straight_line.meters;
+}
+function getPwCost(data) {
+  return +data.purchase_options[0].price.USD
+}
+function getPwAvailability(data) {
+  return data.purchase_options[0].space_availability.status == "available" ? true : false;
+}
+function getPwName(data) {
+  return data._embedded["pw:location"].name;
+}
+function getPwAddress(data) {
+  return data._embedded["pw:location"].address1;
+}
+function getPwCity(data) {
+  return data._embedded["pw:location"].city;
+}
+function getPwAmenities(data) {
+  let amenities = data.purchase_options[0].amenities,
+    services = [];
+
+  amenities.forEach(a => {
+    if (a.enabled || a.visible) {
+      services.push(a.name);
+    }
+  })
+  return services;
+}
+function getPwId(data) {
+  return data._embedded["pw:location"].id;
+}
+function getPwImage(data) {
+  let photos = data._embedded["pw:location"].photos;
+  return photos.length ? photos[0].sizes.original.URL : null;
+}
+function processParkwhizData(data) {
+// console.log("parkwhizData")
+// console.log(JSON.stringify(data, null, 3));
+  let obj = {};
+  obj.coordinates = getPwCoordinates(data);
+  obj.distance = getPwDistance(data);
+  obj.cost = getPwCost(data);
+  obj.available = getPwAvailability(data);
+  obj.name = getPwName(data);
+  obj.address = getPwAddress(data);
+  obj.city = getPwCity(data);
+  obj.amenities = getPwAmenities(data);
+  obj.id = getPwId(data);
+  obj.img = getPwImage(data);
+  return obj;
+}
+
+function getPmCoordinates(data) {
+  return {
+    lon: data.gpsPoints[0].longitude,
+    lat: data.gpsPoints[0].latitude
+  }
+}
+function calcPmDistance(location, lat2, lng2) {
+  let TO_RAD = Math.PI / 180.0,
+      EARTH_MEAN_RADIUS = 6371000.0;
+
+  let lat1 = location.lat, lng1 = location.lon;
+
+  let theta1 = lat1 * TO_RAD,
+      theta2 = lat2 * TO_RAD,
+      deltaTheta = (lat2 - lat1) * TO_RAD,
+      delatLambda = (lng2 - lng1) * TO_RAD,
+
+      a = Math.sin(deltaTheta * 0.5) * Math.sin(deltaTheta * 0.5) +
+        Math.cos(theta1) * Math.cos(theta2) *
+        Math.sin(delatLambda * 0.5) * Math.sin(delatLambda * 0.5),
+
+      c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)),
+
+      d = EARTH_MEAN_RADIUS * c;
+
+    return Math.round(d);
+}
+function getPmCost(data) {
+  return +data.zoneInfo.lotQuote.totalCost;
+}
+function getPmAvailability(data) {
+  return data.zoneInfo.lotQuote.available;
+}
+function getPmName(data) {
+  return data.locationName;
+}
+function getPmAddress(data) {
+  return data.zoneInfo.street;
+}
+function getPmCity(data) {
+  return data.zoneInfo.city;
+}
+function getPmAmenities(data) {
+  return data.zoneServices.map(s => s.name);
+}
+function getPmId(data) {
+  return data.zoneId;
+}
+function getPmImage(data) {
+  let photos = data.zoneCustomImages;
+  return photos.length ? photos[0].s3Url : null;
+}
+function processParkmobileData(data, lat, lon) {
+// console.log("parkmobileData")
+// console.log(JSON.stringify(data, null, 3));
+  let obj = {};
+  obj.coordinates = getPmCoordinates(data)
+  obj.distance = calcPmDistance(obj.coordinates, lat, lon);
+  obj.cost = getPmCost(data);
+  obj.available = getPmAvailability(data);
+  obj.name = getPmName(data);
+  obj.address = getPmAddress(data);
+  obj.city = getPmCity(data);
+  obj.amenities = getPmAmenities(data);
+  obj.id = getPmId(data);
+  obj.img = getPmImage(data);
+  return obj;
+}
+
 function getNearbyParking(req, res, next){
   var lat = req.query.lat,
-      lng = req.query.lng
+      lng = req.query.lng;
 
+  getNearbyParkWhiz(lat,lng)
+    .then(function(parkWhizData) {
+      let processedData = [];
+      parkWhizData.forEach(pwData => {
+        processedData.push(processParkwhizData(pwData));
+      })
+console.log("processedData",processedData.length)
+
+      getNearyParkMobile(lat, lng)
+        .then(function(parkMobileData) {
+          let pmZones = parkMobileData.zones,
+            promises = pmZones.map(z => getDetailedParkMobile(z.internalZoneCode))
+          Promise.all(promises)
+            .then(values => {
+              values.forEach(v => {
+                processedData.push(processParkmobileData(v.zones[0], lat, lng));
+              })
+console.log("processedData",processedData.length)
+              res.send(processedData.sort((a, b) => a.distance - b.distance))
+            });
+        });
+    })
+}
+
+function getNearbyParkWhiz(lat, lng) {
   const DISTANCE_THRESHOLD = 5 //In miles
   const MAX_NUM_PARKING = 7 // return a max of N places to park
 
@@ -221,15 +375,58 @@ function getNearbyParking(req, res, next){
   var endTimeString = end_time.toISOString().substr(0, 19);
 
   var url = `https://api.parkwhiz.com/v4/quotes/?q=coordinates:${lat},${lng} distance:${DISTANCE_THRESHOLD}&start_time=${startTimeString}&end_time=${endTimeString}&sort=distance:asc&api_key=62d882d8cfe5680004fa849286b6ce20`
-  console.log(url)
+  // console.log(url)
 
-  fetch(url).then(function(response) {
-    return response.json();
-  }).then(function(data) {
-    res.send(data.slice(0,MAX_NUM_PARKING))
-  });//end fetch
+  return fetch(url)
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(data) {
+      return data.slice(0, MAX_NUM_PARKING);
+    });//end fetch
 }
+function getNearyParkMobile(lat, lon) {
+  var upper = getUpper(lat, lon),
+    lower = getLower(lat, lon),
 
+    startDate = new Date(),
+    endDate = new Date();
+  endDate.setHours(endDate.getHours()+1);
+
+  var startDateStr = startDate.toISOString().slice(0, 16),
+    endDateStr = endDate.toISOString().slice(0, 16);
+
+  var url = `https://parkmobile.io/api/search/zones/reservation?maxResults=7&upperPoint=%7BLat:${ upper.lat },Lon:${ upper.lon }%7D&centerPoint=%7BLat:${ lat },Lon:${ lon }%7D&lowerPoint=%7BLat:${ lower.lat },Lon:${ lower.lon }%7D&StartDate=${ startDateStr }&EndDate=${ endDateStr }&includeServices=true`
+
+  return fetch(url).then(function(response) { return response.json(); })
+}
+function getDetailedParkMobile(internalZoneCode) {
+  var startDate = new Date(),
+    endDate = new Date();
+  endDate.setHours(endDate.getHours()+1);
+
+  var startDateStr = startDate.toISOString().slice(0, 16),
+    endDateStr = endDate.toISOString().slice(0, 16);
+
+  var url = `https://parkmobile.io/api/zone/${ internalZoneCode }?ParkingActionType=2&StartDate=${ startDateStr }&EndDate=${ endDateStr }`;
+// console.log("<getDetailedParkMobile> url:",url);
+  return fetch(url).then(function(response) { return response.json(); })
+}
+function getUpper(lat, lon) {
+  return {
+    lat: +lat + (40.50393676481472 - 40.49388561191413),
+    lon: +lon + (-74.43124089243776 - -74.44875035288698)
+  }
+}
+function getLower(lat, lon) {
+  return {
+    lat: +lat - (40.49388561191413 - 40.48383295317215),
+    lon: +lon - (-74.44875035288698 - -74.4662598133362)
+  }
+}
+// upperPoint= Lat:40.50393676481472,Lon:-74.43124089243776
+// centerPoint=Lat:40.49388561191413,Lon:-74.44875035288698
+// lowerPoint=Lat:40.48383295317215,Lon:-74.4662598133362
 
 
 // add query functions
