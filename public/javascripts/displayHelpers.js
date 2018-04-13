@@ -427,7 +427,7 @@ function displayParkingData(parkingSpot){
 
         let aCardBlock = amenitiesCard.append("div").attr("class", "card-block")
 
-        let picBlock = aCardBlock.append("div").style("max-width", "75%")
+        let picBlock = aCardBlock.append("div").style("max-width", "60%")
           .style("float", "left").style("display", "inline-block")
           .append("img").style("max-width", "100%").attr("src", parkingSpot.img);
 
