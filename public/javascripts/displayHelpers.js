@@ -292,10 +292,19 @@ function displayRealtimeData(transitStop,data,mode,stopSelectorString){
           //Default because in updateMap, we update the latlng
           var busStartPosition = new L.LatLng(transitStop['stop_lat'], transitStop['stop_lon'])  
 
-          var busIcon = L.divIcon({ 
-            className:'stopIcon',
-            iconSize:[20,20]
-          });
+          // var busIcon = L.divIcon({ 
+          //   className:'stopIcon',
+          //   iconSize:[20,20]
+          // });
+         var busIcon =  L.icon({
+            iconUrl: '/img/buspin.png',
+            //shadowUrl: 'leaf-shadow.png',
+
+            iconSize:     [32, 50], // size of the icon
+            iconAnchor:   [16, 0], // point of the icon which will correspond to marker's location
+            shadowAnchor: [4, 62],  // the same for the shadow
+            popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+        });
           var busMarker = L.marker(busStartPosition, {icon: busIcon, draggable:false})
           map.addLayer(busMarker);
 
@@ -462,7 +471,7 @@ function displayParkingData(parkingSpot){
   priceDiv
     .append('div')
       .attr("class","card-block stopListData distance")
-      .text(parkingSpot['distance'] + " meters")  
+      .text((parkingSpot['distance'] * 0.000621371).toLocaleString() + " mi")  
 
     priceDiv
       .append('div')
