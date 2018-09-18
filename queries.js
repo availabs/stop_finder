@@ -125,36 +125,42 @@ function getRealtimeData(req,res,next){
         },
         scripts:scripts,
         done: function (err, window) {
-          var listItems = window.document.getElementsByTagName("tr")
-
+          console.log('err',err )
+          
           var serviceArray = []
-          //TODO -- this is very ugly, but it gets the last updated time
-          var updatedTime = {currentTime: listItems[0].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").split("Departures ")[1].split("Select")[0].trim()}
-          serviceArray.push(updatedTime)
-          var color;
-          for(var i=2; i<listItems.length; i++){
-            var curItems = listItems[i].textContent.split('\n')
-                            .map(singleLine => singleLine.trim())
-                            .filter(singleLine => singleLine != "")
+          if (err) {  
+            return res.send(serviceArray)
+          } else {
+            var listItems = window.document.getElementsByTagName("tr")
 
-            //No idea why every line is read twice... but mod 2 solves it.                           
-            if(curItems.length == 6 && i%2 == 1){
-              //TODO: some stops dont get colors... namely -- ones with routeIds 10 AND 11
-              color = window.getComputedStyle(listItems[i], null)['background-color']
-              var curService = {
-                color:color,
-                dep_time: curItems[0],
-                to: curItems[1],
-                track: curItems[2],
-                line: curItems[3],
-                train_no: curItems[4],
-                status: curItems[5].replace("in ","")
-              }    
+            //TODO -- this is very ugly, but it gets the last updated time
+            var updatedTime = {currentTime: listItems[0].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").split("Departures ")[1].split("Select")[0].trim()}
+            serviceArray.push(updatedTime)
+            var color;
+            for(var i=2; i<listItems.length; i++){
+              var curItems = listItems[i].textContent.split('\n')
+                              .map(singleLine => singleLine.trim())
+                              .filter(singleLine => singleLine != "")
 
-              serviceArray.push(curService)      
-            }//End of mod 2 conditional that pushes data to result array
-          }//End of for loop that iterates over table rows
-          res.send(serviceArray)
+              //No idea why every line is read twice... but mod 2 solves it.                           
+              if(curItems.length == 6 && i%2 == 1){
+                //TODO: some stops dont get colors... namely -- ones with routeIds 10 AND 11
+                color = window.getComputedStyle(listItems[i], null)['background-color']
+                var curService = {
+                  color:color,
+                  dep_time: curItems[0],
+                  to: curItems[1],
+                  track: curItems[2],
+                  line: curItems[3],
+                  train_no: curItems[4],
+                  status: curItems[5].replace("in ","")
+                }    
+
+                serviceArray.push(curService)      
+              }//End of mod 2 conditional that pushes data to result array
+            }//End of for loop that iterates over table rows
+            res.send(serviceArray)
+          }
         }//End of callback for jsdom
       })//Closes jsdom call
     }//end of stopid conditional
@@ -375,7 +381,7 @@ function getNearbyParkWhiz(lat, lng) {
   var endTimeString = end_time.toISOString().substr(0, 19);
 
   var url = `https://api.parkwhiz.com/v4/quotes/?q=coordinates:${lat},${lng} distance:${DISTANCE_THRESHOLD}&start_time=${startTimeString}&end_time=${endTimeString}&sort=distance:asc&api_key=62d882d8cfe5680004fa849286b6ce20`
-  // console.log(url)
+  console.log(url)
 
   return fetch(url)
     .then(function(response) {
@@ -397,7 +403,6 @@ function getNearyParkMobile(lat, lon) {
     endDateStr = endDate.toISOString().slice(0, 16);
 
   var url = `https://parkmobile.io/api/search/zones/reservation?maxResults=7&upperPoint=%7BLat:${ upper.lat },Lon:${ upper.lon }%7D&centerPoint=%7BLat:${ lat },Lon:${ lon }%7D&lowerPoint=%7BLat:${ lower.lat },Lon:${ lower.lon }%7D&StartDate=${ startDateStr }&EndDate=${ endDateStr }&includeServices=true`
-
   return fetch(url).then(function(response) { return response.json(); })
 }
 function getDetailedParkMobile(internalZoneCode) {
@@ -409,7 +414,7 @@ function getDetailedParkMobile(internalZoneCode) {
     endDateStr = endDate.toISOString().slice(0, 16);
 
   var url = `https://parkmobile.io/api/zone/${ internalZoneCode }?ParkingActionType=2&StartDate=${ startDateStr }&EndDate=${ endDateStr }`;
-// console.log("<getDetailedParkMobile> url:",url);
+  console.log("<getDetailedParkMobile> url:",url);
   return fetch(url).then(function(response) { return response.json(); })
 }
 function getUpper(lat, lon) {
