@@ -161,7 +161,7 @@ function displayStopData(transitStop,realtime,mode){
       }
       else if(dataKey == "distance"){
         //Converts from meters (from DB) to miles
-        var displayedDistance = transitStop[dataKey] / 1609
+        var displayedDistance = (transitStop[dataKey] / 1609).toFixed(1)
         var unit = " mi"
 
         //If somehow they are 100 miles away from a stop, this deal with rounding/number formatting issues
@@ -471,7 +471,7 @@ function displayParkingData(parkingSpot){
   priceDiv
     .append('div')
       .attr("class","card-block stopListData distance")
-      .text((parkingSpot['distance'] * 0.000621371).toLocaleString() + " mi")  
+      .text((parkingSpot['distance'] * 0.000621371).toFixed(1) + " mi")  
 
     priceDiv
       .append('div')

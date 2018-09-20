@@ -92,12 +92,12 @@ console.log("parkingSpot:",parkingSpot);
       var pName = parkingSpot.name
 
       var pIcon =  L.icon({
-            iconUrl: '/img/parking.png',
+            iconUrl: '/img/parking-sign.png',
             //shadowUrl: 'leaf-shadow.png',
 
-            iconSize:     [60, 60], // size of the icon
-            iconAnchor:   [30, 0], // point of the icon which will correspond to marker's location
-            popupAnchor:  [40, 60] // point from which the popup should open relative to the iconAnchor
+            iconSize:     [30, 30], // size of the icon
+            iconAnchor:   [15, 15], // point of the icon which will correspond to marker's location
+            popupAnchor:  [15, 0] // point from which the popup should open relative to the iconAnchor
         });
       var pmarker = L.marker([pCoords.lat, pCoords.lon], {icon: pIcon,id:parkingSpot.id})
       parkingIcons.push(pmarker)
