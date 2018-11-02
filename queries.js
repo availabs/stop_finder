@@ -342,8 +342,8 @@ function processParkmobileData(data, lat, lon) {
 }
 
 function getNearbyParking(req, res, next){
-  var lat = req.query.lat,
-      lng = req.query.lng;
+  var lat = req.query.lat || req.params.lat,
+      lng = req.query.lng || req.params.lng
 
   getNearbyParkWhiz(lat,lng)
     .then(function(parkWhizData) {
