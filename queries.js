@@ -339,7 +339,7 @@ function processParkmobileData(data, lat, lon) {
   obj.amenities = getPmAmenities(data);
   obj.id = getPmId(data);
   obj.img = getPmImage(data);
-  object.datasource = 'parkmobile'
+  obj.datasource = 'parkmobile'
   return obj;
 }
 
