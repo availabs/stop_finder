@@ -371,7 +371,7 @@ console.log("processedData",processedData.length)
 
 function getNearbyParkWhiz(lat, lng) {
   const DISTANCE_THRESHOLD = 5 //In miles
-  const MAX_NUM_PARKING = 7 // return a max of N places to park
+  const MAX_NUM_PARKING = 10 // return a max of N places to park
 
   var start_time = new Date()
   var end_time = new Date()
@@ -419,14 +419,14 @@ function getDetailedParkMobile(internalZoneCode) {
 }
 function getUpper(lat, lon) {
   return {
-    lat: +lat + (40.50393676481472 - 40.49388561191413),
-    lon: +lon + (-74.43124089243776 - -74.44875035288698)
+    lat: +lat + (0.06),
+    lon: +lon + (0.06)
   }
 }
 function getLower(lat, lon) {
   return {
-    lat: +lat - (40.49388561191413 - 40.48383295317215),
-    lon: +lon - (-74.44875035288698 - -74.4662598133362)
+    lat: +lat - (0.06),
+    lon: +lon - (0.06)
   }
 }
 // upperPoint= Lat:40.50393676481472,Lon:-74.43124089243776

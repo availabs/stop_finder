@@ -38,4 +38,6 @@ router.all('/realtime/bus/position', db.getBusPosition);
 
 router.all('/parking/spots',db.getNearbyParking);
 
+router.all('/parking/spots/:lng/:lat',db.getNearbyParking);
+
 module.exports = router;
