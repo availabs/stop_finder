@@ -269,6 +269,7 @@ function processParkwhizData(data) {
   obj.amenities = getPwAmenities(data);
   obj.id = getPwId(data);
   obj.img = getPwImage(data);
+  obj.datasource = 'parkwhiz'
   return obj;
 }
 
@@ -338,6 +339,7 @@ function processParkmobileData(data, lat, lon) {
   obj.amenities = getPmAmenities(data);
   obj.id = getPmId(data);
   obj.img = getPmImage(data);
+  object.datasource = 'parkmobile'
   return obj;
 }
 
