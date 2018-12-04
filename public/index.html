@@ -62,6 +62,8 @@
 
   var map;
 
+console.log("MODE:",mode)
+
   //Initialize Map here
   if(mode == "bus"){
     if(!map){
@@ -84,6 +86,10 @@
         params.lat || position.coords.latitude,
         params.lng || position.coords.longitude
       ]
+// console.log("prmstr",prmstr)
+// console.log("40.720901, -74.169977")
+//       start = [40.720901, -74.169977]
+// console.log("START:",start,position)
 
       /*
       *

@@ -9,8 +9,7 @@
 function getStopData (coords, mode) {
   var url = `${ mode }/stops/${coords[1]}/${coords[0]}`
 
-  console.log('url', url)
-
+console.log('<getStopData> url', url)
 
   //Loading Indicator Card, gets removed when data is displayed
   var loadingIndicator = d3.select("#stops")
@@ -36,6 +35,7 @@ function getStopData (coords, mode) {
     throw new Error(response.statusText);
   }).then(function(data) {
 
+// console.log("<getStopData> RESPONSE:", data)
     //Async function for getting realtime data BEFORE displaying any static stop info
     //Need to know if any services are schedules BEFORE displaying that stop
     //This gets realtime data for ALL stops, then iterates through and displays each
@@ -43,7 +43,7 @@ function getStopData (coords, mode) {
     //https://medium.com/@antonioval/making-array-iteration-easy-when-using-async-await-6315c3225838
     async function handleStops (transitStops) {
       const pArray = transitStops.map(async transitStop => {
-        var stop_code = mode == "bus" ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)]
+        var stop_code = ((mode == "bus") ? transitStop.stop_code : TRAIN_STOP_ABBR[format_train_stop_name(transitStop.stop_name)])
         var url = `/realtime?mode=${ mode }&routeId=${ params['routeId'] }&direction=${ params['direction'] }&stopId=${ stop_code }&allBusses=${ params['allBusses'] }`
 
         const response = await fetch(url);
@@ -52,6 +52,7 @@ function getStopData (coords, mode) {
 
       const realtimeStops = await Promise.all(pArray);
 
+// console.log("<getStopData> realtimeStops:",realtimeStops)
       for(var i=0; i<realtimeStops.length; i++){
         // displayStopData(transitStop,realtime,mode, stopSelectorString = null)
         displayStopData(transitStops[i],realtimeStops[i],mode,null)
@@ -85,7 +86,7 @@ function getParkingSpots(coords){
   }).then(function(data) {
 
     data.map(parkingSpot => {
-console.log("parkingSpot:",parkingSpot);
+// console.log("parkingSpot:",parkingSpot);
       displayParkingData(parkingSpot)
 
       var pCoords =  parkingSpot.coordinates

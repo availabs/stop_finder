@@ -85,12 +85,13 @@ ___example response___
 ```
 #### Nearest Parking 
 ##### GET ___/parking/spots/:lng/:lat___
-This endpoint returns an array of parking locations within 3 miles of requested location. It pulls  information from the ParkMoblile and ParkWhiz APIs and returns them in a unified parking spot data object. 
+This endpoint returns an array of parking locations within 3 miles of requested location. It pulls  information from the ParkMoblile API and returns them in a unified parking spot data object.
+The ParkWhiz API was retired due to the lower data quality returned by ParkWhiz.
 ##### Response  
 _array of parking objects_ - This route returns an array of parking objects
 
 ##### Parking Object
-The parking object includes data about the location from both ParkWhiz and ParkMobile
+The parking object includes data about the location from ParkMobile.
 __coordinates__ _object_ - contains lon, lat  as numbers.
 __distance__ _number_ - Distance between parking and requested location in meters. 
 __cost__ _number_ - Simple cost for parking in dollars.
@@ -102,6 +103,7 @@ __amenities__ _array of strings_ (___optional___) - A list of strings describing
 __id__  _string_ - Parking location ID from datasource
 __img__  _string_ (___optional___) - URL string to image of parking location. 
 __datasource__ _string_ - denotes if location came from parkwhiz of parkmobile api
+__heightRestriction__ _boolean_ or _number_ - false if no restriction, a number in inches if a restriction exists.
 
 ___example request___
 ```https://transitfinder.availabs.org/parking/spots/-74.453/40.494```
@@ -122,14 +124,62 @@ ___example request___
          "ADA Parking",
          "Covered",
          "Elevator",
-         "Height Clearance",
          "Mobile Pass Accepted",
          "Paved",
          "Self Park"
       ],
       "id":132659,
       "img":"https://cnp-assets-production.s3.amazonaws.com/assets/lots/3796/lot_entrance.png",
-      "datasource":"parkmobile"
+      "datasource":"parkmobile",
+      "heightRestriction":98
    },
    ...
 ]
+```
+### Realtime Data
+#### GET ___/realtime?mode=train?stopId=31453___
+This endpoint returns an array of data. The data returned depends on the mode supplied. If no mode is supplied then the API defaults to bus.
+#### Response
+_array of realtime objects_ - 
+#### Realtime Object: bus
+__route__ _string_ - route number.
+__description__ _string_ - description needed.
+__time__ _string_ - time until arrival.
+__bus__ _string_ - the bus number.
+___example request___
+```https://transitfinder.availabls.org/realtime?stopId=31453&mode=bus```
+```
+[
+   {
+      "route": '818',
+      "description": 'To 818 NEW BRUNSWICK STRATFORD APTS',
+      "time": '24 MIN',
+      "bus": '6154'
+   },
+   ...
+]
+```
+#### Realtime Object: train
+__color__ _string_ (___optional___) - RGBA color.
+__dep_time__ _string_ - HH:MM time string.
+__to__ _string_ - description needed.
+__track__ _string_ - description needed.
+__line__ _string_ - description needed.
+__train_no__ _string_ - description needed.
+__status__ _string_ - time until arrival.
+___example request___
+```https://transitfinder.availabls.org/realtime?stopId=WB&mode=train```
+```
+[
+   {
+      "color": ",
+      "dep_time": "11:27",
+      "to": "Long Branch-BH",
+      "track": "1",
+      "line": "No Jersey Coast",
+      "train_no": "3235",
+      "status": "24 Min"
+   },
+   ...
+]
+```

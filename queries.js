@@ -17,7 +17,7 @@ function getRealtimeData(req,res,next){
 
   var mode = req.query.mode != "undefined" ? req.query.mode : "bus"
 
-
+// console.log("\n<getRealtimeData> START:", req.query, "\n");
   if(mode == "bus"){
     var routeId = req.query.routeId != "undefined" ? req.query.routeId : null,
       direction = req.query.direction != "undefined" ? req.query.direction : null,
@@ -52,7 +52,6 @@ function getRealtimeData(req,res,next){
           console.error("script error!!", event.error);
         });
 
-        console.log(url)
         var stopArray = []
 
         //If only a stopId is given, just looking for the 'font' tags
@@ -65,9 +64,10 @@ function getRealtimeData(req,res,next){
           var listItems = window.document.getElementsByTagName("ul")[0].children
         }
 
-        var reachedData = false
         var curRowIndex = 0
         var curRowObj = {}
+
+// console.log("<getRealtimeData> url:",url)
 
         Object.keys(listItems).forEach((listItemKey,index) => {
           var curElement = listItems[listItemKey]
@@ -78,7 +78,7 @@ function getRealtimeData(req,res,next){
           }
 
           if(curNodeName == "HR"){
-            reachedData = true
+// console.log("\nHR\n")
             curRowIndex = 0;
             if(curRowObj["route"]){
               stopArray.push(curRowObj)
@@ -86,26 +86,42 @@ function getRealtimeData(req,res,next){
             }
           }
 
-          if(curNodeName == "FONT" && curRowIndex > 1 || (curNodeName == "#text" && listItems[listItemKey].textContent.replace(/\s+/g,""))){
-            var textContent = listItems[listItemKey].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").trim()
+          // if(curNodeName == "FONT" && curRowIndex > 1 || (curNodeName == "#text" && curElement.textContent.replace(/\s+/g,""))){
+            var textContent = curElement.textContent.trim().replace(/\s+/g, " ")
 
-            if(curRowIndex == 3){
-              curRowObj['description'] = textContent
+// console.log("WTF???",curRowIndex, textContent)
+            if (/^[#](\d+)$/.test(textContent)) {
+              const match = /^[#](\d+)$/.exec(textContent);
+              curRowObj['route'] = match[1];
             }
-            if(curRowIndex == 4){
-              curRowObj['time'] = textContent
+            if (/^To \d+ .+$/.test(textContent)) {
+              curRowObj['description'] = textContent;
             }
-            if(curRowIndex == 2){
-              curRowObj['route'] = textContent
+            if (/^\d+ MIN/.test(textContent)) {
+              curRowObj['time'] = textContent;
             }
-            if(curRowIndex == 6){
-              curRowObj['bus'] = textContent.split('Vehicle ')[1]
+            if (/^[(]Vehicle (\d+)[)]$/.test(textContent)) {
+              const match = /^[(]Vehicle (\d+)[)]$/.exec(textContent)
+              curRowObj['bus'] = match[1];
             }
-          }
+            // if(curRowIndex == 2){
+            //   curRowObj['route'] = textContent
+            // }
+            // if(curRowIndex == 3){
+            //   curRowObj['description'] = textContent
+            // }
+            // if(curRowIndex == 4){
+            //   curRowObj['time'] = textContent
+            // }
+            // if(curRowIndex == 6){
+            //   curRowObj['bus'] = textContent.split('Vehicle ')[1]
+            // }
+          // }
 
           curRowIndex++;
         })
 
+console.log("<getRealtimeData> DONE: stopArray:",stopArray)
         res.send(stopArray)
       }
     });
@@ -155,7 +171,7 @@ function getRealtimeData(req,res,next){
                   train_no: curItems[4],
                   status: curItems[5].replace("in ","")
                 }    
-
+console.log("?????????",req.query,curService);
                 serviceArray.push(curService)      
               }//End of mod 2 conditional that pushes data to result array
             }//End of for loop that iterates over table rows
@@ -178,8 +194,6 @@ function getBusPosition(req,res,next){
       var scripts = []
 
   var url = `http://mybusnow.njtransit.com/bustime/map/getBusesForRoute.jsp?route=${ routeId }`
-  console.log("RYAN", url)
-
 
   jsdom.env({
     url: url,
@@ -223,10 +237,12 @@ function getPwDistance(data) {
   return data.distance.straight_line.meters;
 }
 function getPwCost(data) {
-  return +data.purchase_options[0].price.USD
+  return +data.price.USD;
 }
 function getPwAvailability(data) {
-  return data.purchase_options[0].space_availability.status == "available" ? true : false;
+console.log("<getPwAvailability>",data.space_availability.status)
+  const status = data.space_availability.status;
+  return (status === "available") || (status === "limited");
 }
 function getPwName(data) {
   return data._embedded["pw:location"].name;
@@ -238,10 +254,10 @@ function getPwCity(data) {
   return data._embedded["pw:location"].city;
 }
 function getPwAmenities(data) {
-  let amenities = data.purchase_options[0].amenities,
+  let amenities = data.amenities,
     services = [];
 
-  amenities.forEach(a => {
+  amenities && amenities.forEach(a => {
     if (a.enabled || a.visible) {
       services.push(a.name);
     }
@@ -249,28 +265,68 @@ function getPwAmenities(data) {
   return services;
 }
 function getPwId(data) {
-  return data._embedded["pw:location"].id;
+  return data.location_id;
 }
 function getPwImage(data) {
-  let photos = data._embedded["pw:location"].photos;
-  return photos.length ? photos[0].sizes.original.URL : null;
+  const photos = data._embedded["pw:location"].photos;
+// console.log("PHOTOS:",photos)
+  let url = photos.length ? photos[0].sizes.original.URL : null;
+  if (/placeholder/.test(url)) {
+    url = null;
+  }
+  return url;
 }
 function processParkwhizData(data) {
 // console.log("parkwhizData")
 // console.log(JSON.stringify(data, null, 3));
-  let obj = {};
-  obj.coordinates = getPwCoordinates(data);
-  obj.distance = getPwDistance(data);
-  obj.cost = getPwCost(data);
-  obj.available = getPwAvailability(data);
-  obj.name = getPwName(data);
-  obj.address = getPwAddress(data);
-  obj.city = getPwCity(data);
-  obj.amenities = getPwAmenities(data);
-  obj.id = getPwId(data);
-  obj.img = getPwImage(data);
-  obj.datasource = 'parkwhiz'
-  return obj;
+
+  const returnData = [],
+    baseObj = {};
+
+  baseObj.coordinates = getPwCoordinates(data);
+  baseObj.distance = getPwDistance(data);
+  baseObj.name = getPwName(data);
+  baseObj.address = getPwAddress(data);
+  baseObj.city = getPwCity(data);
+  baseObj.id = getPwId(data);
+  baseObj.img = getPwImage(data);
+  baseObj.heightRestriction = false;
+  baseObj.datasource = 'parkwhiz'
+
+  data.purchase_options && data.purchase_options.forEach(po => {
+    let obj = {};
+
+    obj.bookable = true;
+    obj.cost = getPwCost(po);
+    obj.amenities = getPwAmenities(po);
+    obj.available = getPwAvailability(po);
+
+    returnData.push({ ...baseObj, ...obj });
+  })
+
+  data.non_bookable_options && data.non_bookable_options.forEach(nbo => {
+    let obj = {};
+
+    obj.bookable = false;
+    obj.cost = getPwCost(nbo);
+    obj.amenities = [];
+    obj.available = true;
+
+    returnData.push({ ...baseObj, ...obj });
+  })
+  return returnData;
+}
+function processParkWhizEntrances(processedData, res) {
+  if (res.status !== 404) {
+    let height = processedData.heightRestriction || -Infinity
+    res.entrances.forEach(entrance => {
+      if (entrance.max_dimensions) {
+        height = Math.max(height, +entrance.max_dimensions.inches.height);
+      }
+    })
+    processedData.heightRestriction = (height > -Infinity) ? height : false;
+  }
+  return processedData;
 }
 
 function getPmCoordinates(data) {
@@ -316,7 +372,7 @@ function getPmCity(data) {
   return data.zoneInfo.city;
 }
 function getPmAmenities(data) {
-  return data.zoneServices.map(s => s.name);
+  return data.zoneServices.filter(s => s.code !== "HEIGHT").map(s => s.name);
 }
 function getPmId(data) {
   return data.zoneId;
@@ -325,8 +381,25 @@ function getPmImage(data) {
   let photos = data.zoneCustomImages;
   return photos.length ? photos[0].s3Url : null;
 }
+function getPmHeightRestriction(data) {
+  let hc = false;
+  const heightClearance = data.zoneServices.reduce((a, c) => c.code === "HEIGHT" ? c : a, null);
+  if (heightClearance) {
+    const regex = /^(\d+)['](\d*)["]*$/,
+      match = regex.exec(heightClearance.value);
+    if (match) {
+      const feet = match[1],
+        inches = match[2];
+      hc = +feet * 12;
+      if (inches) {
+        hc += +inches;
+      }
+    }
+  }
+  return hc;
+}
 function processParkmobileData(data, lat, lon) {
-// console.log("parkmobileData")
+// console.log("<processParkmobileData>")
 // console.log(JSON.stringify(data, null, 3));
   let obj = {};
   obj.coordinates = getPmCoordinates(data)
@@ -340,6 +413,8 @@ function processParkmobileData(data, lat, lon) {
   obj.id = getPmId(data);
   obj.img = getPmImage(data);
   obj.datasource = 'parkmobile'
+  obj.bookable = false;
+  obj.heightRestriction = getPmHeightRestriction(data);
   return obj;
 }
 
@@ -347,32 +422,64 @@ function getNearbyParking(req, res, next){
   var lat = req.query.lat || req.params.lat,
       lng = req.query.lng || req.params.lng
 
-  getNearbyParkWhiz(lat,lng)
-    .then(function(parkWhizData) {
-      let processedData = [];
-      parkWhizData.forEach(pwData => {
-        processedData.push(processParkwhizData(pwData));
-      })
-console.log("processedData",processedData.length)
+console.log("<getNearbyParking> lat / lng", lat, lng);
 
-      getNearyParkMobile(lat, lng)
-        .then(function(parkMobileData) {
-          let pmZones = parkMobileData.zones,
-            promises = pmZones.map(z => getDetailedParkMobile(z.internalZoneCode))
-          Promise.all(promises)
-            .then(values => {
-              values.forEach(v => {
-                processedData.push(processParkmobileData(v.zones[0], lat, lng));
-              })
-console.log("processedData",processedData.length)
-              res.send(processedData.sort((a, b) => a.distance - b.distance))
+//   getNearbyParkWhiz(lat,lng)
+//     .then(function(parkWhizData) {
+//       let processedData = [];
+//       parkWhizData.forEach(pwData => {
+//         processedData = processedData.concat(processParkwhizData(pwData))
+//       })
+//       processedData = processedData.sort((a, b) => a.distance - b.distance).slice(0, 10)
+//       const promises = processedData.map(d => {
+// /*
+//   The multiple URLs are required because the location_ids returned by ParkWhiz are
+//   not correct. Sometimes, a location_id is returned in the following form: \d+_\d+,
+//   where \d+ denotes a string of variable length digits. The actual location_id can
+//   reside on EITHER side of the underscore...
+// */
+//         let urls = [`https://api.parkwhiz.com/v4/locations/${ d.id }?fields=id,entrances`];
+//         const regex = /^(\d+)[_](\d+)$/;
+//         if (regex.test(d.id)) {
+//           const match = regex.exec(d.id)
+//           urls.push(
+//             `https://api.parkwhiz.com/v4/locations/${ match[1] }?fields=id,entrances`,
+//             `https://api.parkwhiz.com/v4/locations/${ match[2] }?fields=id,entrances`
+//           )
+//         }
+//         return Promise.all(urls.map(url => {
+//           return fetch(url)
+//             .then(res => res.json())
+//             .then(res => {
+//               processParkWhizEntrances(d, res);
+//             })
+//         }))
+//       })
+//       Promise.all(promises)
+//         .then(() => {
+          getNearyParkMobile(lat, lng)
+            .then(function(parkMobileData) {
+              let pmZones = parkMobileData.zones,
+                promises = pmZones.map(z => getDetailedParkMobile(z.internalZoneCode))
+              Promise.all(promises)
+                .then(values => {
+                  const processedData = [];
+                  values.forEach(v => {
+                    v.zones.forEach(z => processedData.push(processParkmobileData(z, lat, lng)));
+                  })
+                  res.send(processedData
+                            .filter(d => d.address)
+                            .sort((a, b) => a.distance - b.distance)
+                            .slice(0, 10)
+                  )
+                });
             });
-        });
-    })
+    //     })
+    // })
 }
 
 function getNearbyParkWhiz(lat, lng) {
-  const DISTANCE_THRESHOLD = 5 //In miles
+  const DISTANCE_THRESHOLD = 10 //In miles
   const MAX_NUM_PARKING = 10 // return a max of N places to park
 
   var start_time = new Date()
@@ -382,15 +489,15 @@ function getNearbyParkWhiz(lat, lng) {
   var startTimeString = start_time.toISOString().substr(0, 19);  
   var endTimeString = end_time.toISOString().substr(0, 19);
 
-  var url = `https://api.parkwhiz.com/v4/quotes/?q=coordinates:${lat},${lng} distance:${DISTANCE_THRESHOLD}&start_time=${startTimeString}&end_time=${endTimeString}&sort=distance:asc&api_key=62d882d8cfe5680004fa849286b6ce20`
-  console.log(url)
+  var url = `https://api.parkwhiz.com/v4/quotes/?q=coordinates:${lat},${lng} distance:${DISTANCE_THRESHOLD}&start_time=${startTimeString}&end_time=${endTimeString}&sort=distance:asc&option_types=all&api_key=62d882d8cfe5680004fa849286b6ce20`
+// console.log("<getNearbyParkWhiz>",url)
 
   return fetch(url)
     .then(function(response) {
       return response.json();
     })
     .then(function(data) {
-      return data.slice(0, MAX_NUM_PARKING);
+      return data//.slice(0, MAX_NUM_PARKING);
     });//end fetch
 }
 function getNearyParkMobile(lat, lon) {
@@ -404,7 +511,8 @@ function getNearyParkMobile(lat, lon) {
   var startDateStr = startDate.toISOString().slice(0, 16),
     endDateStr = endDate.toISOString().slice(0, 16);
 
-  var url = `https://parkmobile.io/api/search/zones/reservation?maxResults=7&upperPoint=%7BLat:${ upper.lat },Lon:${ upper.lon }%7D&centerPoint=%7BLat:${ lat },Lon:${ lon }%7D&lowerPoint=%7BLat:${ lower.lat },Lon:${ lower.lon }%7D&StartDate=${ startDateStr }&EndDate=${ endDateStr }&includeServices=true`
+  var url = `https://app.parkmobile.io/api/search/zones/reservation?maxResults=20&upperPoint=%7BLat:${ upper.lat },Lon:${ upper.lon }%7D&centerPoint=%7BLat:${ lat },Lon:${ lon }%7D&lowerPoint=%7BLat:${ lower.lat },Lon:${ lower.lon }%7D&StartDate=${ startDateStr }&EndDate=${ endDateStr }&includeServices=true`
+console.log("<getNearyParkMobile> url:",url)
   return fetch(url).then(function(response) { return response.json(); })
 }
 function getDetailedParkMobile(internalZoneCode) {
@@ -415,20 +523,20 @@ function getDetailedParkMobile(internalZoneCode) {
   var startDateStr = startDate.toISOString().slice(0, 16),
     endDateStr = endDate.toISOString().slice(0, 16);
 
-  var url = `https://parkmobile.io/api/zone/${ internalZoneCode }?ParkingActionType=2&StartDate=${ startDateStr }&EndDate=${ endDateStr }`;
-  console.log("<getDetailedParkMobile> url:",url);
+  var url = `https://app.parkmobile.io/api/zone/${ internalZoneCode }?ParkingActionType=2&StartDate=${ startDateStr }&EndDate=${ endDateStr }`;
+// console.log("<getDetailedParkMobile> url:",url);
   return fetch(url).then(function(response) { return response.json(); })
 }
 function getUpper(lat, lon) {
   return {
-    lat: +lat + (0.06),
-    lon: +lon + (0.06)
+    lat: +lat + (0.2),
+    lon: +lon + (0.2)
   }
 }
 function getLower(lat, lon) {
   return {
-    lat: +lat - (0.06),
-    lon: +lon - (0.06)
+    lat: +lat - (0.2),
+    lon: +lon - (0.2)
   }
 }
 // upperPoint= Lat:40.50393676481472,Lon:-74.43124089243776

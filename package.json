@@ -19,8 +19,9 @@
     "serve-favicon": "~2.4.5"
   },
   "reactSnap": {
-    "puppeteer": { "cache": false },
+    "puppeteer": {
+      "cache": false
+    },
     "skipThirdPartyRequests": true
   }
-
 }

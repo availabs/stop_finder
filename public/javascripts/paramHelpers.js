@@ -26,7 +26,7 @@ function fixUrlMode(){
 function setUrlLocation(location){
   console.log("setUrlLocation",window.location)
   var newUrl = `${window.location.origin}${window.location.pathname}?lng=${location[1]}&lat=${location[0]}`
-  console.log(newUrl)
+  console.log("setUrlLocation",newUrl)
     history.pushState({}, null,newUrl )
 }
 

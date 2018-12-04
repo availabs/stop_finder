@@ -18,12 +18,12 @@ const DISPLAYED_REALTIME_KEYS = [
 const DISTANCE_FORMAT = d3.format(".2r")
 
 function displayStopData(transitStop,realtime,mode){
+// console.log("<displayStopData>",transitStop,realtime,mode,realtime.length)
   //MIN_SCHEDULED_SERVICES check is less OR EQUAL TO because first data element is ALWAYS timestamp
   if((realtime.length <= MIN_SCHEDULED_SERVICES) || (d3.selectAll("div.stopListEntry").size() >= MAX_DISPLAYED_STOPS)){
     return;
   }
   //If GTFS data AND the realtime data does not include colors, we gotta make our own
-
   //If there is no realtime data OR the realtime data has no color
   //Use premade colors
   if(realtime && realtime.length > 1 && realtime[1].color){
@@ -440,7 +440,23 @@ function displayParkingData(parkingSpot){
           .style("float", "left").style("display", "inline-block")
           .append("img").style("max-width", "100%").attr("src", parkingSpot.img);
 
-        let amenities = aCardBlock.append("div").style("float", "right").style("display", "inline-block")
+        const infoBlock = aCardBlock.append("div")
+          .style("float", "right")
+          .style("display", "inline-block")
+          .style("padding", "10px")
+
+console.log("PARKING SPOT:",parkingSpot)
+        if (parkingSpot.heightRestriction) {
+          infoBlock.append("div")
+            .text(`Height Clearance: ${ Math.floor(parkingSpot.heightRestriction / 12) }' ${ parkingSpot.heightRestriction % 12 }"`)
+        }
+
+        if (parkingSpot.heightRestriction && parkingSpot.amenities.length) {
+          infoBlock.append("div")
+            .style("height", "10px")
+        }
+
+        infoBlock.append("div")
           .selectAll(".amenity")
           .data(parkingSpot.amenities)
           .enter().append("div").text(t => t);
@@ -498,6 +514,7 @@ function backgroundColorToggle(stop_id,stopSelectorString){
 function updateMap(data,busMarker,stationMarker){
   var url = `/realtime/bus/position?bus=${ data.bus }&route=${ data.route  }`
 
+// console.log("UPDATE MAP, URL:", url)
   fetch(url).then(function(response) {
     if(response.ok){
       return response.json();
@@ -509,9 +526,11 @@ function updateMap(data,busMarker,stationMarker){
     busMarker.setLatLng(updatedBusPos) 
     busMarker.update()
 
+    stationMarker.update();
+
     //https://stackoverflow.com/a/16845714
     var group = new L.featureGroup([stationMarker,busMarker]);
-    map.fitBounds(group.getBounds(),{padding:[0,0]}); //Going back and forth with adding some padding in
+    map.fitBounds(group.getBounds(),{padding:[25,25]}); //Going back and forth with adding some padding in
   })//fetch callback  
 }
 
