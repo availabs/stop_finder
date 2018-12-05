@@ -147,7 +147,7 @@ __description__ _string_ - description needed.
 __time__ _string_ - time until arrival.
 __bus__ _string_ - the bus number.
 ___example request___
-```https://transitfinder.availabls.org/realtime?stopId=31453&mode=bus```
+```https://transitfinder.availabs.org/realtime?stopId=31453&mode=bus```
 ```
 [
    {
@@ -168,7 +168,7 @@ __line__ _string_ - description needed.
 __train_no__ _string_ - description needed.
 __status__ _string_ - time until arrival.
 ___example request___
-```https://transitfinder.availabls.org/realtime?stopId=WB&mode=train```
+```https://transitfinder.availabs.org/realtime?stopId=WB&mode=train```
 ```
 [
    {
