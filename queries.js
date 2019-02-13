@@ -2,6 +2,10 @@ var promise = require('bluebird');
 var jsdom = require("jsdom/lib/old-api.js");
 const fetch = require('node-fetch');
 
+var train_stop_abbr = require('./train_stop_abbr')
+
+
+
 
 const { JSDOM } = jsdom;
 var options = {
@@ -132,7 +136,7 @@ console.log("<getRealtimeData> DONE: stopArray:",stopArray)
     if(stopId){
       var scripts = []
       var url = `http://dv.njtransit.com/mobile/tid-mobile.aspx?sid=${stopId}`
-
+      console.log('realtime url', url)
       jsdom.env({
         url: url,
         features: {
@@ -141,40 +145,42 @@ console.log("<getRealtimeData> DONE: stopArray:",stopArray)
         },
         scripts:scripts,
         done: function (err, window) {
-          console.log('err',err )
+          //console.log('err',err,window.document.getElementsByTagName('div') )
           
           var serviceArray = []
           if (err) {  
             return res.send(serviceArray)
           } else {
             var listItems = window.document.getElementsByTagName("tr")
+            if(listItems.length > 0){
 
-            //TODO -- this is very ugly, but it gets the last updated time
-            var updatedTime = {currentTime: listItems[0].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").split("Departures ")[1].split("Select")[0].trim()}
-            serviceArray.push(updatedTime)
-            var color;
-            for(var i=2; i<listItems.length; i++){
-              var curItems = listItems[i].textContent.split('\n')
-                              .map(singleLine => singleLine.trim())
-                              .filter(singleLine => singleLine != "")
+              //TODO -- this is very ugly, but it gets the last updated time
+              var updatedTime = {currentTime: listItems[0].textContent.replace(/(\n|\t|\(|\)|\#)/gm,"").split("Departures ")[1].split("Select")[0].trim()}
+              serviceArray.push(updatedTime)
+              var color;
+              for(var i=2; i<listItems.length; i++){
+                var curItems = listItems[i].textContent.split('\n')
+                                .map(singleLine => singleLine.trim())
+                                .filter(singleLine => singleLine != "")
 
-              //No idea why every line is read twice... but mod 2 solves it.                           
-              if(curItems.length == 6 && i%2 == 1){
-                //TODO: some stops dont get colors... namely -- ones with routeIds 10 AND 11
-                color = window.getComputedStyle(listItems[i], null)['background-color']
-                var curService = {
-                  color:color,
-                  dep_time: curItems[0],
-                  to: curItems[1],
-                  track: curItems[2],
-                  line: curItems[3],
-                  train_no: curItems[4],
-                  status: curItems[5].replace("in ","")
-                }    
-console.log("?????????",req.query,curService);
-                serviceArray.push(curService)      
-              }//End of mod 2 conditional that pushes data to result array
-            }//End of for loop that iterates over table rows
+                //No idea why every line is read twice... but mod 2 solves it.                           
+                if(curItems.length == 6 && i%2 == 1){
+                  //TODO: some stops dont get colors... namely -- ones with routeIds 10 AND 11
+                  color = window.getComputedStyle(listItems[i], null)['background-color']
+                  var curService = {
+                    color:color,
+                    dep_time: curItems[0],
+                    to: curItems[1],
+                    track: curItems[2],
+                    line: curItems[3],
+                    train_no: curItems[4],
+                    status: curItems[5].replace("in ","")
+                  }    
+                  //console.log("?????????",req.query,curService);
+                  serviceArray.push(curService)      
+                }//End of mod 2 conditional that pushes data to result array
+              }//End of for loop that iterates over table rows
+            }
             res.send(serviceArray)
           }
         }//End of callback for jsdom
@@ -624,7 +630,12 @@ function getNearbyTrainStops(req, res, next){
 
   db.any(query)
     .then(function (data) {
-      console.log(data)
+      console.log(train_stop_abbr)
+      data = data.map(d => {
+        console.log('d.stop_name.toLowerCase()', d.stop_name.toLowerCase(), train_stop_abbr[d.stop_name.toLowerCase()])
+        d.stop_abbr = train_stop_abbr[format_train_stop_name(d.stop_name)] || '';
+        return d
+      })
       res.status(200)
         .json({
           status: 'success',
@@ -648,3 +659,21 @@ module.exports = {
   getBusPosition:getBusPosition,
   getNearbyParking:getNearbyParking
 };
+
+
+function format_train_stop_name(raw_stop_name){
+  //replaces special characters (. and -)
+  var formatted_stop_name = raw_stop_name.replace(/-|\./g," ").toLowerCase()
+  //replaces ave with avenue
+  formatted_stop_name = formatted_stop_name.replace(" ave"," avenue")
+  //removes "station"
+  formatted_stop_name = formatted_stop_name.replace("station","")
+  //Changes 'ny' to 'new york'
+  formatted_stop_name = formatted_stop_name.replace("ny","new york")
+  //Changes 'nj' to new york
+  formatted_stop_name = formatted_stop_name.replace("nj","new jersey")
+  //trim whitespace
+  formatted_stop_name = formatted_stop_name.trim()
+
+  return formatted_stop_name;
+}
