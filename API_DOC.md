@@ -19,6 +19,7 @@ __route_ids__ _array of strings_ - List of GTFS route ids for bus routes which s
 __route_text_colors__ _array of strings_ (___optional___)-  List of route text colors with array index corresponding to index of route ID, is often blank, depends on GTFS Data.
 __route_colors__  _array of strings_ (___optional___)-  List of route colors with array index corresponding to index of route ID, is often blank, depends on GTFS Data.
 __route_names__  _array of strings_ (___optional___)-  List of route names with array index corresponding to index of route ID, is often blank, depends on GTFS Data.
+__stop_abbr__  _strings_ (___Train stop only___)-  Stop abbreviation used to get real time data as stop code param for train stops
 
 ___example request___
 ```https://transitfinder.availabs.org/bus/stops/-73.8238464/42.6795008```
@@ -77,7 +78,8 @@ ___example response___
          ],
          "route_names":[  
             "Northeast Corridor"
-         ]
+         ],
+         "stop_abbr": "NW"
       },
       ...
    ]
