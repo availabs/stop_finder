@@ -1,6 +1,7 @@
 var promise = require('bluebird');
 var jsdom = require("jsdom/lib/old-api.js");
 const fetch = require('node-fetch');
+const curl = new (require( 'curl-request' ))();
 
 var train_stop_abbr = require('./train_stop_abbr')
 
@@ -465,13 +466,17 @@ console.log("<getNearbyParking> lat / lng", lat, lng);
 //         .then(() => {
           getNearyParkMobile(lat, lng)
             .then(function(parkMobileData) {
+              console.log('parkMobileData', parkMobileData)
               let pmZones = parkMobileData.zones,
                 promises = pmZones.map(z => getDetailedParkMobile(z.internalZoneCode))
               Promise.all(promises)
                 .then(values => {
                   const processedData = [];
+                  console.log('values', values)
                   values.forEach(v => {
-                    v.zones.forEach(z => processedData.push(processParkmobileData(z, lat, lng)));
+                    if(v.zones){
+                      v.zones.forEach(z => processedData.push(processParkmobileData(z, lat, lng)));
+                    }
                   })
                   res.send(processedData
                             .filter(d => d.address)
@@ -519,7 +524,17 @@ function getNearyParkMobile(lat, lon) {
 
   var url = `https://app.parkmobile.io/api/search/zones/reservation?maxResults=20&upperPoint=%7BLat:${ upper.lat },Lon:${ upper.lon }%7D&centerPoint=%7BLat:${ lat },Lon:${ lon }%7D&lowerPoint=%7BLat:${ lower.lat },Lon:${ lower.lon }%7D&StartDate=${ startDateStr }&EndDate=${ endDateStr }&includeServices=true`
 console.log("<getNearyParkMobile> url:",url)
-  return fetch(url).then(function(response) { return response.json(); })
+  return fetch(url, 
+    {
+      "credentials":"include",
+      "headers": {"accept":"application/json, text/plain, */*","accept-language":"en-US,en;q=0.9","dpr":"1.1, 1.1","sourceappkey":"ParkmobileWeb","x-xsrf-token":"gCcJxwX4-5DgbHtNEoCq9_rTue4dUiHKpg4k"},
+      "body":null,
+      "method":"GET"
+    }).then(function(response) { 
+      
+      return response.json(); 
+    })
+   //return fetch(url).then(function(response) { return response.json(); })
 }
 function getDetailedParkMobile(internalZoneCode) {
   var startDate = new Date(),
@@ -531,7 +546,12 @@ function getDetailedParkMobile(internalZoneCode) {
 
   var url = `https://app.parkmobile.io/api/zone/${ internalZoneCode }?ParkingActionType=2&StartDate=${ startDateStr }&EndDate=${ endDateStr }`;
 // console.log("<getDetailedParkMobile> url:",url);
-  return fetch(url).then(function(response) { return response.json(); })
+  return fetch(url,{
+      "credentials":"include",
+      "headers": {"accept":"application/json, text/plain, */*","accept-language":"en-US,en;q=0.9","dpr":"1.1, 1.1","sourceappkey":"ParkmobileWeb","x-xsrf-token":"gCcJxwX4-5DgbHtNEoCq9_rTue4dUiHKpg4k"},
+      "body":null,
+      "method":"GET"
+  }).then(function(response) { return response.json(); })
 }
 function getUpper(lat, lon) {
   return {

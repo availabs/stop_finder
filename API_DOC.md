@@ -11,7 +11,7 @@ __data__ _array_ - An array stop objects, each value representing a bus stop, so
 The transit stop object includes data about the transit stop from NJTRANSIT GTFS. 
 __stop_id__ _string_ - GTFS Stop Id
 __stop_code__ _string_ - GTFS Stop Code 
-__stop_name__ _string_ - GTFS Name of Stop,
+__stop_name__ _string_ - GTFS Name of Stop
 __stop_lat__ _number_ - Stop Latitude 
 __stop_lon__ _number_ - Stop Longitude
 __distance__ _number_ - Distance between request location and stop location in meters.
