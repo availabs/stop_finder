@@ -1,7 +1,6 @@
 var promise = require('bluebird');
 var jsdom = require("jsdom/lib/old-api.js");
 const fetch = require('node-fetch');
-const curl = new (require( 'curl-request' ))();
 
 var train_stop_abbr = require('./train_stop_abbr')
 
