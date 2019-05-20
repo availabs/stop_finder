@@ -122,6 +122,7 @@ TRAIN_STOP_ABBR = {
   "plainfield":"PF",
   "plauderville":"PL",
   "point pleasant beach":"PP",
+  "point pleasant":"PP",
   "port jervis":"PO",
   "princeton":"PR",
   "princeton junction":"PJ",

@@ -649,12 +649,14 @@ function getNearbyTrainStops(req, res, next){
 
   db.any(query)
     .then(function (data) {
-      console.log(train_stop_abbr)
       data = data.map(d => {
-        console.log('d.stop_name.toLowerCase()', d.stop_name.toLowerCase(), train_stop_abbr[d.stop_name.toLowerCase()])
-        d.stop_abbr = train_stop_abbr[format_train_stop_name(d.stop_name)] || '';
+        d.stop_abbr = train_stop_abbr[format_train_stop_name(d.stop_name)] || null;
         return d
       })
+      .filter(d => d.stop_abbr)
+
+      console.log('Get NEARBY TRAIN STOPS sending data', data)
+      
       res.status(200)
         .json({
           status: 'success',
@@ -663,6 +665,7 @@ function getNearbyTrainStops(req, res, next){
         });
     })
     .catch(function (err) {
+      console.log('got some error', err)
       return next(err);
     });
 

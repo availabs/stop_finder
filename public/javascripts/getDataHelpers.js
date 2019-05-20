@@ -63,6 +63,8 @@ console.log('<getStopData> url', url)
       return realtimeStops;
     }//end async function
 
+
+    console.log('Handle stops', data['data'])
     handleStops(data['data'])
 
   }).catch(function(error) {
